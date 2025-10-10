@@ -1,25 +1,24 @@
+# 用 AR.js 实现图片追踪 Demo
 
-<h1 align="center">用AR.js做图片追踪的Demo</h1>
+本项目演示如何使用 AR.js 在手机上实现图片追踪，打开摄像头后可识别指定图片，并显示 3D 模型，支持模型旋转和缩放操作。
 
-实现打开手机摄像头，对图片进行追踪，显示模型并且可旋转缩放。
-需要https协议才能打开摄像头，把项目放到服务器上，用手机打开网站。
+## 使用说明
 
-AR.js项目地址
-https://ar-js-org.github.io/AR.js-Docs/image-tracking/
-旋转功能项目地址 arjs-gestures 
-https://github.com/fcor/arjs-gestures
+- 项目需部署在支持 HTTPS 的服务器上，手机访问网页即可体验 AR 效果。
+- 推荐使用分辨率高、识别度高的图片进行训练，否则可能无法识别。
 
-替换想要追踪的图片
-把图片训练成AR.JS能够识别的形式，图片训练有web版和node版。
-选择识别度高，分辨率高的图片，否则会识别不出来。
-训练文件越大，等待时间越长，训练完成后替换掉nft里面的文件。
+## 相关项目
 
-web版
-https://carnaux.github.io/NFT-Marker-Creator/#/
-正确返回下载的3个文件格式分别是 .fset .fset3 .iset
+- [AR.js 官方文档](https://ar-js-org.github.io/AR.js-Docs/image-tracking/)
+- [arjs-gestures（旋转缩放功能）](https://github.com/fcor/arjs-gestures)
 
-node版
-https://github.com/Carnaux/NFT-Marker-Creator
+## 替换追踪图片
 
-替换模型
-把model里面的文件进行替换
+1. 使用 NFT Marker Creator 工具将图片训练为 AR.js 可识别格式（.fset、.fset3、.iset）。
+   - [Web 版工具](https://carnaux.github.io/NFT-Marker-Creator/#/)
+   - [Node 版工具](https://github.com/Carnaux/NFT-Marker-Creator)
+2. 将生成的文件替换到 `nft` 文件夹中。
+
+## 替换 3D 模型
+
+将新的 glTF 模型文件替换到 `model` 文件夹中即可。
