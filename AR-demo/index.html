@@ -1,6 +1,6 @@
-<script src="https://zhangjiajia123.github.io/AR-demo/aframe-master.min.js"></script>
-<script src="https://zhangjiajia123.github.io/AR-demo/aframe-ar-nft.js"></script>
-<script src="https://zhangjiajia123.github.io/AR-demo/gestures.js"></script>
+<script src="./aframe-master.min.js"></script>
+<script src="./aframe-ar-nft.js"></script>
+<script src="./gestures.js"></script>
 <script> 
 </script>
 <head>
@@ -30,7 +30,7 @@
 
 <body style="margin: 0px; overflow: hidden">
   <div class="arjs-loader">
-    <div>正在加载AR模型，请稍候111...</div>
+    <div>正在加载AR模型，请稍候...</div>
   </div>
 
   <!-- a-frame scene -->
@@ -44,7 +44,7 @@
     <!-- 图片训练后文件路径，不带文件拓展名！ -->
     <a-nft
       type="nft"
-      url="https://zhangjiajia123.github.io/AR-demo/nft/smoking_boy/smoking_boy"
+      url="./nft/smoking_boy/smoking_boy"
       smooth="true"
       smoothCount="10"
       smoothTolerance=".01"
@@ -52,7 +52,7 @@
     >
       <!-- 展示模型的路径 -->
       <a-entity
-        gltf-model="https://zhangjiajia123.github.io/AR-demo/model/smoking_boy/scene.gltf"
+        gltf-model="./model/smoking_boy/scene.gltf"
         scale="50 50 50"
         gesture-handler="minScale: 0.25; maxScale: 10"
         position="100 0 -200"
