@@ -1,7 +1,8 @@
-<script src="aframe-master.min.js"></script>
-<script src="aframe-ar-nft.js"></script>
-<script src="gestures.js"></script>
-
+<script src="./aframe-master.min.js"></script>
+<script src="./aframe-ar-nft.js"></script>
+<script src="./gestures.js"></script>
+<script> 
+</script>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 </head>
@@ -43,7 +44,7 @@
     <!-- 图片训练后文件路径，不带文件拓展名！ -->
     <a-nft
       type="nft"
-      url="nft/smoking_boy/smoking_boy"
+      url="./nft/smoking_boy/smoking_boy"
       smooth="true"
       smoothCount="10"
       smoothTolerance=".01"
@@ -51,7 +52,7 @@
     >
       <!-- 展示模型的路径 -->
       <a-entity
-        gltf-model="model/smoking_boy/scene.gltf"
+        gltf-model="./model/smoking_boy/scene.gltf"
         scale="50 50 50"
         gesture-handler="minScale: 0.25; maxScale: 10"
         position="100 0 -200"
