@@ -3,18 +3,37 @@
 <script src="./js/gestures.js"></script>
 <body style="margin: 0px; overflow: hidden">
   <a-scene
-    vr-mode-ui="enabled: false;"
-    gesture-detector
-    renderer="logarithmicDepthBuffer: true;"
+    arjs
     embedded
-    arjs="trackingMethod: best; sourceType: webcam;debugUIEnabled: false;"
+    renderer="logarithmicDepthBuffer: true;"
+    vr-mode-ui="enabled: false"
+    gesture-detector
+    id="scene"
   >
-    <a-marker type="pattern" preset="custom" url="/AR-demo/pattern/marker.patt">
+    <a-assets>
+      <a-asset-item
+        id="bowser"
+        src="https://cdn.glitch.com/06bd98b4-97ee-4c07-a546-fe39ca205034%2Fbowser.glb"
+      >
+      </a-asset-item>
+    </a-assets>
+
+    <a-marker
+      preset="hiro"
+      raycaster="objects: .clickable"
+      emitevents="true"
+      cursor="fuse: false; rayOrigin: mouse;"
+      id="markerA"
+    >
       <a-entity
+        id="bowser-model"
+        gltf-model="#bowser"
         position="0 0 0"
-        scale="1 1 1"
-        gltf-model="/AR-demo/model/smoking_boy/scene.gltf"
-      ></a-entity>
+        scale="0.05 0.05 0.05"
+        class="clickable"
+        gesture-handler
+      >
+      </a-entity>
     </a-marker>
     <a-entity camera></a-entity>
   </a-scene>
