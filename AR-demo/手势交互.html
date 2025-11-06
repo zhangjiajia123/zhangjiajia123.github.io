@@ -102,10 +102,11 @@
       });
       // 初始化AR体验
       function initARExperience() {
-        console.log(`output->1111`,1111)
+        
         // 等待AR场景加载完成
         const scene = document.getElementById("scene");
         scene.addEventListener("loaded", function () {
+          console.log(`output->1111`,1111)
           // 加载熊猫3D模型
           loadPandaModel();
           // 初始化手势识别
