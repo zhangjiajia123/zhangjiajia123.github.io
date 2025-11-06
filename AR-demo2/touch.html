@@ -1,0 +1,177 @@
+<script src="./js/aframe-master.min.js"></script>
+<script src="./js/aframe-ar-nft.js"></script>
+<script src="./js/gestures.js"></script>
+<script></script>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+
+<style>
+  .arjs-loader {
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .arjs-loader div {
+    text-align: center;
+    font-size: 1.25em;
+    color: white;
+  }
+</style>
+
+<body style="margin: 0px; overflow: hidden">
+  <div class="arjs-loader">
+    <div>正在加载AR模型，请稍候...</div>
+  </div>
+
+  <!-- a-frame scene -->
+  <a-scene
+    vr-mode-ui="enabled: false;"
+    gesture-detector
+    renderer="logarithmicDepthBuffer: true;"
+    embedded
+    arjs="trackingMethod: best; sourceType: webcam;debugUIEnabled: false;"
+    id="scene"
+  >
+    <!-- 图片训练后文件路径，不带文件拓展名！ -->
+    <a-nft
+      type="nft"
+      url="/AR-demo/nft/smoking_boy/smoking_boy"
+      smooth="true"
+      smoothCount="10"
+      smoothTolerance=".01"
+      smoothThreshold="5"
+    >
+      <!-- 展示模型的路径 -->
+      <a-entity
+        gltf-model="/AR-demo/model/smoking_boy/scene.gltf"
+        scale="50 50 50"
+        gesture-handler="minScale: 0.25; maxScale: 10"
+        position="150 100 0"
+        rotation="-90 0 0"
+        id="panda-model"
+      >
+      </a-entity>
+    </a-nft>
+    <!-- 静态摄像机根据设备的移动而移动 -->
+    <a-entity camera="fov: 190"></a-entity>
+  </a-scene>
+
+  <script>
+    const scene = document.getElementById("scene");
+    scene.addEventListener("loaded", function () {
+      // 初始化触摸交互
+      initTouchInteraction();
+    });
+    // 初始化触摸交互
+    function initTouchInteraction() {
+      const pandaEntity = document.getElementById("panda-model");
+
+      // 添加触摸事件监听
+      pandaEntity.addEventListener("touchstart", handleTouchStart);
+      pandaEntity.addEventListener("touchend", handleTouchEnd);
+
+      // 添加鼠标事件监听（用于非触摸设备）
+      pandaEntity.addEventListener("mousedown", handleTouchStart);
+      pandaEntity.addEventListener("mouseup", handleTouchEnd);
+    }
+    // 处理触摸开始
+    function handleTouchStart(event) {
+      event.stopPropagation();
+
+      // 添加触摸反馈效果
+      const pandaEntity = document.getElementById("panda-model");
+      pandaEntity.setAttribute("material", "color: #E0E0E0");
+
+      // 开始计时，判断是否为长按（抚摸）
+      this.touchStartTime = Date.now();
+    }
+    // 处理触摸结束
+    function handleTouchEnd(event) {
+      event.stopPropagation();
+
+      // 恢复原始颜色
+      const pandaEntity = document.getElementById("panda-model");
+      pandaEntity.setAttribute("material", "color: #FFFFFF");
+
+      // 计算触摸时长
+      const touchDuration = Date.now() - this.touchStartTime;
+
+      // 如果触摸时间超过500ms，认为是抚摸动作
+      if (touchDuration > 500) {
+        triggerPettingAction();
+      }
+    }
+    // 触发抚摸动作
+    function triggerPettingAction() {
+      const pandaEntity = document.getElementById("panda-model");
+
+      // 显示爱心粒子效果
+      createHeartParticles();
+
+      // 显示信息弹窗
+      setTimeout(() => {
+        showInfoPanel(
+          "熊猫的习性",
+          "野生大熊猫是独居动物，每只大熊猫都需要大约4-6平方公里的领地。它们通过气味标记来沟通。"
+        );
+      }, 1500);
+    }
+    // 创建爱心粒子效果
+    function createHeartParticles() {
+      const scene = document.querySelector("a-scene");
+
+      for (let i = 0; i < 5; i++) {
+        const heart = document.createElement("a-entity");
+        heart.setAttribute(
+          "geometry",
+          "primitive: plane; width: 0.1; height: 0.1"
+        );
+        heart.setAttribute(
+          "material",
+          "src: #heart-texture; transparent: true;"
+        );
+        heart.setAttribute("position", "0 0.5 0");
+
+        // 随机动画参数
+        const angle = Math.random() * Math.PI * 2;
+        const distance = 0.5 + Math.random() * 0.5;
+        const targetX = Math.cos(angle) * distance;
+        const targetY = 1 + Math.random();
+        const targetZ = Math.sin(angle) * distance;
+
+        heart.setAttribute("animation", {
+          property: "position",
+          to: `${targetX} ${targetY} ${targetZ}`,
+          dur: 1500,
+          easing: "easeOutQuad",
+        });
+
+        heart.setAttribute("animation__opacity", {
+          property: "material.opacity",
+          from: 1,
+          to: 0,
+          dur: 1500,
+          easing: "easeOutQuad",
+        });
+
+        scene.appendChild(heart);
+
+        // 动画完成后移除爱心
+        setTimeout(() => {
+          if (heart.parentNode) {
+            scene.removeChild(heart);
+          }
+        }, 1600);
+      }
+    }
+  </script>
+</body>
