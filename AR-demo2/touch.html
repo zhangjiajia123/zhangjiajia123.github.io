@@ -25,7 +25,12 @@
     <a-entity camera></a-entity>
   </a-scene>
 </body>
-
+<%if(CurrMember.getYuanGzryState()==3){%>
+<script src="https://cdn.banyou.70180.cn/assets/xcontent/vconsole/vconsole.min.js"></script>
+<script>
+  let vConsole = new window.VConsole();
+</script>
+<%}%>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     const modelEntity = document.getElementById("model-entity");
@@ -60,6 +65,7 @@
   }
   // 处理触摸开始
   function handleTouchStart(event) {
+    console.log("触摸开始");
     event.stopPropagation();
 
     // 添加触摸反馈效果
