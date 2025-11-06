@@ -11,7 +11,6 @@
     <!-- 引入手势识别库 -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="./js/aframe-ar-nft.js"></script>
     <style>
       body {
         margin: 0;
@@ -81,7 +80,7 @@
         id="scene"
       >
         <!-- 标记器定义 -->
-        <a-marker type="pattern" url="/AR-demo/model/smoking_boy/scene.gltf">
+        <a-marker type="pattern">
           <!-- 熊猫模型 -->
           <a-entity id="panda-model" panda-animation></a-entity>
         </a-marker>
@@ -103,24 +102,16 @@
       });
       // 初始化AR体验
       function initARExperience() {
-        
         // 等待AR场景加载完成
-        // const scene = document.getElementById("scene");
-        // scene.addEventListener("loaded", function () {
-        //   console.log(`output->1111`,1111)
-        //   // 加载熊猫3D模型
-        //   loadPandaModel();
-        //   // 初始化手势识别
-        //   initHandGestureRecognition();
-        //   // 初始化触摸交互
-        //   initTouchInteraction();
-        // });
-        // 加载熊猫3D模型
+        const scene = document.getElementById("scene");
+        scene.addEventListener("loaded", function () {
+          // 加载熊猫3D模型
           loadPandaModel();
           // 初始化手势识别
           initHandGestureRecognition();
           // 初始化触摸交互
           initTouchInteraction();
+        });
       }
 
       // 加载熊猫3D模型
@@ -128,7 +119,7 @@
         const pandaEntity = document.getElementById("panda-model");
 
         // 使用GLTF格式的熊猫模型
-        pandaEntity.setAttribute("gltf-model", "/AR-demo/model/smoking_boy/scene.gltf");
+        pandaEntity.setAttribute("gltf-model", "models/panda.gltf");
         pandaEntity.setAttribute("scale", "0.5 0.5 0.5");
         pandaEntity.setAttribute("position", "0 0 0");
         pandaEntity.setAttribute("animation-mixer", "clip: Idle");
@@ -267,7 +258,7 @@
         const scene = document.querySelector("a-scene");
         const bamboo = document.createElement("a-entity");
 
-        bamboo.setAttribute("gltf-model", "/AR-demo/model/smoking_boy/scene.gltf");
+        bamboo.setAttribute("gltf-model", "models/bamboo.gltf");
         bamboo.setAttribute("scale", "0.3 0.3 0.3");
         bamboo.setAttribute("position", "0.5 1 0");
         bamboo.setAttribute("animation", {
