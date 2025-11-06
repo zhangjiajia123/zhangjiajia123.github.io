@@ -3,6 +3,15 @@
 <script src="./js/gestures.js"></script>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <script>
+    AFRAME.registerComponent("on-model-click", {
+      init: function () {
+        this.el.addEventListener("click", function () {
+          alert("模型被点击了！");
+        });
+      },
+    });
+  </script>
 </head>
 <body style="margin: 0px; overflow: hidden">
   <a-scene
@@ -33,40 +42,27 @@
 </script>
 <%}%>
 <script>
-  AFRAME.registerComponent("on-model-click", {
-    init: function () {
-      this.el.addEventListener("click", function () {
-        alert("模型被点击了！");
-      });
-    },
-  });
   document.addEventListener("DOMContentLoaded", function () {
     // const scene = document.getElementById("scene");
-
     // 等待场景加载完成
     // scene.addEventListener("loaded", function () {
     //   console.log("A-Frame场景加载完成");
-
     //   // 监听标记找到事件（当扫描到NFT标记时）
     //   const marker = document.querySelector("a-marker");
     //   marker.addEventListener("markerFound", function () {
     //     console.log("标记被识别，模型开始加载");
-
     //     const modelEntity = document.getElementById("model-entity");
-
     //     // 监听模型加载完成事件
     //     modelEntity.addEventListener("model-loaded", function () {
     //       console.log("GLTF模型加载成功！");
     //       // 初始化触摸交互
     //       initTouchInteraction();
     //     });
-
     //     // 监听模型加载错误事件
     //     modelEntity.addEventListener("model-error", function () {
     //       console.error("GLTF模型加载失败！");
     //     });
     //   });
-
     //   // 监听标记丢失事件
     //   marker.addEventListener("markerLost", function () {
     //     console.log("标记丢失");
