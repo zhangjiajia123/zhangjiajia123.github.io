@@ -15,6 +15,7 @@
   >
     <a-marker type="pattern" preset="custom" url="/AR-demo/pattern/marker.patt">
       <a-entity
+        id="model-entity"
         gltf-model="/AR-demo/model/smoking_boy/scene.gltf"
         position="0 0 0"
         scale="0.3 0.3 0.3"
@@ -26,11 +27,25 @@
 </body>
 
 <script>
-  const scene = document.getElementById("scene");
-  scene.addEventListener("loaded", function () {
-    // 初始化触摸交互
-    initTouchInteraction();
+  document.addEventListener("DOMContentLoaded", function () {
+    const modelEntity = document.getElementById("model-entity");
+
+    // 监听模型加载完成事件
+    modelEntity.addEventListener("model-loaded", function () {
+      console.log("GLTF模型加载成功！");
+      const scene = document.getElementById("scene");
+      scene.addEventListener("loaded", function () {
+        // 初始化触摸交互
+        initTouchInteraction();
+      });
+    });
+
+    // 监听模型加载错误事件
+    modelEntity.addEventListener("model-error", function () {
+      console.error("GLTF模型加载失败！");
+    });
   });
+
   // 初始化触摸交互
   function initTouchInteraction() {
     const pandaEntity = document.getElementById("panda-model");
