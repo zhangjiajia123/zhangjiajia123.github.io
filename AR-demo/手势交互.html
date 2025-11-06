@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AR虚拟熊猫互动体验</title>
+    <!-- 引入AR.js用于AR场景 -->
+    <script src="https://cdn.jsdelivr.net/npm/@ar-js/core@latest"></script>
+    <!-- 引入Three.js用于3D渲染 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- 引入手势识别库 -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        font-family: "Arial Rounded MT Bold", "Arial", sans-serif;
+      }
+      #ar-container {
+        width: 100vw;
+        height: 100vh;
+        position: relative;
+      }
+      #info-panel {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 15px;
+        padding: 15px;
+        max-width: 80%;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        display: none;
+        z-index: 100;
+      }
+      .close-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: none;
+        border: none;
+        font-size: 18px;
+        cursor: pointer;
+      }
+      .interaction-hint {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 20px;
+        font-size: 16px;
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0% {
+          opacity: 0.7;
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0.7;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="ar-container">
+      <div class="interaction-hint">伸出手掌喂食 | 触摸屏幕抚摸</div>
+      <a-scene
+        embedded
+        arjs="sourceType: webcam; debugUIEnabled: false;"
+        gesture-detector
+        id="scene"
+      >
+        <!-- 标记器定义 -->
+        <a-marker type="pattern" url="/AR-demo/model/smoking_boy/scene.gltf">
+          <!-- 熊猫模型 -->
+          <a-entity id="panda-model" panda-animation></a-entity>
+        </a-marker>
+        <a-entity camera></a-entity>
+      </a-scene>
+
+      <div id="info-panel">
+        <button class="close-btn">×</button>
+        <h3 id="info-title">熊猫小知识</h3>
+        <p id="info-content">这里是关于熊猫的有趣信息...</p>
+      </div>
+    </div>
+
+    <script>
+      // 主要JavaScript代码将在下面实现
+      document.addEventListener("DOMContentLoaded", function () {
+        // 初始化AR场景和交互功能
+        initARExperience();
+      });
+      // 初始化AR体验
+      function initARExperience() {
+        console.log(`output->1111`,1111)
+        // 等待AR场景加载完成
+        const scene = document.getElementById("scene");
+        scene.addEventListener("loaded", function () {
+          // 加载熊猫3D模型
+          loadPandaModel();
+          // 初始化手势识别
+          initHandGestureRecognition();
+          // 初始化触摸交互
+          initTouchInteraction();
+        });
+      }
+
+      // 加载熊猫3D模型
+      function loadPandaModel() {
+        const pandaEntity = document.getElementById("panda-model");
+
+        // 使用GLTF格式的熊猫模型
+        pandaEntity.setAttribute("gltf-model", "models/panda.gltf");
+        pandaEntity.setAttribute("scale", "0.5 0.5 0.5");
+        pandaEntity.setAttribute("position", "0 0 0");
+        pandaEntity.setAttribute("animation-mixer", "clip: Idle");
+
+        // 添加自定义熊猫动画组件
+        AFRAME.registerComponent("panda-animation", {
+          init: function () {
+            this.el.addEventListener("model-loaded", () => {
+              console.log("熊猫模型加载完成");
+            });
+          },
+
+          // 播放喂食动画
+          playFeedingAnimation: function () {
+            this.el.setAttribute("animation-mixer", "clip: Eating; loop: once");
+            setTimeout(() => {
+              this.el.setAttribute("animation-mixer", "clip: Idle");
+            }, 3000);
+          },
+
+          // 播放被抚摸动画
+          playPettingAnimation: function () {
+            this.el.setAttribute("animation-mixer", "clip: Happy; loop: once");
+            setTimeout(() => {
+              this.el.setAttribute("animation-mixer", "clip: Idle");
+            }, 2000);
+          },
+        });
+      }
+      // 初始化手势识别
+      async function initHandGestureRecognition() {
+        // 加载手部姿态检测模型
+        const model = await handpose.load();
+        const video = document.querySelector("video");
+
+        // 设置摄像头视频流
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" },
+          });
+          video.srcObject = stream;
+
+          // 开始手势检测循环
+          detectHandGesture(model, video);
+        }
+      }
+
+      // 手势检测循环
+      function detectHandGesture(model, video) {
+        async function detectFrame() {
+          const predictions = await model.estimateHands(video);
+
+          if (predictions.length > 0) {
+            // 分析手势
+            const gesture = analyzeGesture(predictions[0]);
+
+            // 如果是喂食手势，触发喂食动作
+            if (gesture === "feeding") {
+              triggerFeedingAction();
+            }
+          }
+
+          requestAnimationFrame(detectFrame);
+        }
+
+        detectFrame();
+      }
+
+      // 分析手势类型
+      function analyzeGesture(hand) {
+        const landmarks = hand.landmarks;
+
+        // 检测手掌张开手势（喂食手势）
+        if (isPalmOpen(landmarks)) {
+          return "feeding";
+        }
+
+        return "none";
+      }
+
+      // 检测手掌是否张开
+      function isPalmOpen(landmarks) {
+        // 计算手指指尖与手掌根部的距离
+        // 简化实现 - 实际需要更复杂的手势识别算法
+        const wrist = landmarks[0];
+        const thumbTip = landmarks[4];
+        const indexTip = landmarks[8];
+        const middleTip = landmarks[12];
+        const ringTip = landmarks[16];
+        const pinkyTip = landmarks[20];
+
+        // 如果所有指尖距离手腕较远，则认为手掌张开
+        const threshold = 0.15;
+        const distances = [
+          distance(wrist, thumbTip),
+          distance(wrist, indexTip),
+          distance(wrist, middleTip),
+          distance(wrist, ringTip),
+          distance(wrist, pinkyTip),
+        ];
+
+        return distances.every((d) => d > threshold);
+      }
+
+      // 计算两点之间的距离
+      function distance(point1, point2) {
+        return Math.sqrt(
+          Math.pow(point1[0] - point2[0], 2) +
+            Math.pow(point1[1] - point2[1], 2) +
+            Math.pow(point1[2] - point2[2], 2)
+        );
+      }
+
+      // 触发喂食动作
+      function triggerFeedingAction() {
+        const pandaEntity = document.getElementById("panda-model");
+        const pandaComponent = pandaEntity.components["panda-animation"];
+
+        // 播放喂食动画
+        pandaComponent.playFeedingAnimation();
+
+        // 创建虚拟竹子并动画
+        createBambooAnimation();
+
+        // 显示信息弹窗
+        setTimeout(() => {
+          showInfoPanel(
+            "熊猫的饮食",
+            "大熊猫99%的食物都是竹子，每天要花12-16小时进食，消耗12-38公斤竹子！"
+          );
+        }, 2000);
+      }
+
+      // 创建竹子喂食动画
+      function createBambooAnimation() {
+        const scene = document.querySelector("a-scene");
+        const bamboo = document.createElement("a-entity");
+
+        bamboo.setAttribute("gltf-model", "models/bamboo.gltf");
+        bamboo.setAttribute("scale", "0.3 0.3 0.3");
+        bamboo.setAttribute("position", "0.5 1 0");
+        bamboo.setAttribute("animation", {
+          property: "position",
+          to: "0 0.3 0",
+          dur: 1500,
+          easing: "easeInQuad",
+        });
+
+        scene.appendChild(bamboo);
+
+        // 动画完成后移除竹子
+        setTimeout(() => {
+          scene.removeChild(bamboo);
+        }, 2000);
+      }
+      // 初始化触摸交互
+      function initTouchInteraction() {
+        const pandaEntity = document.getElementById("panda-model");
+
+        // 添加触摸事件监听
+        pandaEntity.addEventListener("touchstart", handleTouchStart);
+        pandaEntity.addEventListener("touchend", handleTouchEnd);
+
+        // 添加鼠标事件监听（用于非触摸设备）
+        pandaEntity.addEventListener("mousedown", handleTouchStart);
+        pandaEntity.addEventListener("mouseup", handleTouchEnd);
+      }
+
+      // 处理触摸开始
+      function handleTouchStart(event) {
+        event.stopPropagation();
+
+        // 添加触摸反馈效果
+        const pandaEntity = document.getElementById("panda-model");
+        pandaEntity.setAttribute("material", "color: #E0E0E0");
+
+        // 开始计时，判断是否为长按（抚摸）
+        this.touchStartTime = Date.now();
+      }
+
+      // 处理触摸结束
+      function handleTouchEnd(event) {
+        event.stopPropagation();
+
+        // 恢复原始颜色
+        const pandaEntity = document.getElementById("panda-model");
+        pandaEntity.setAttribute("material", "color: #FFFFFF");
+
+        // 计算触摸时长
+        const touchDuration = Date.now() - this.touchStartTime;
+
+        // 如果触摸时间超过500ms，认为是抚摸动作
+        if (touchDuration > 500) {
+          triggerPettingAction();
+        }
+      }
+
+      // 触发抚摸动作
+      function triggerPettingAction() {
+        const pandaEntity = document.getElementById("panda-model");
+        const pandaComponent = pandaEntity.components["panda-animation"];
+
+        // 播放被抚摸动画
+        pandaComponent.playPettingAnimation();
+
+        // 显示爱心粒子效果
+        createHeartParticles();
+
+        // 显示信息弹窗
+        setTimeout(() => {
+          showInfoPanel(
+            "熊猫的习性",
+            "野生大熊猫是独居动物，每只大熊猫都需要大约4-6平方公里的领地。它们通过气味标记来沟通。"
+          );
+        }, 1500);
+      }
+
+      // 创建爱心粒子效果
+      function createHeartParticles() {
+        const scene = document.querySelector("a-scene");
+
+        for (let i = 0; i < 5; i++) {
+          const heart = document.createElement("a-entity");
+          heart.setAttribute(
+            "geometry",
+            "primitive: plane; width: 0.1; height: 0.1"
+          );
+          heart.setAttribute(
+            "material",
+            "src: #heart-texture; transparent: true;"
+          );
+          heart.setAttribute("position", "0 0.5 0");
+
+          // 随机动画参数
+          const angle = Math.random() * Math.PI * 2;
+          const distance = 0.5 + Math.random() * 0.5;
+          const targetX = Math.cos(angle) * distance;
+          const targetY = 1 + Math.random();
+          const targetZ = Math.sin(angle) * distance;
+
+          heart.setAttribute("animation", {
+            property: "position",
+            to: `${targetX} ${targetY} ${targetZ}`,
+            dur: 1500,
+            easing: "easeOutQuad",
+          });
+
+          heart.setAttribute("animation__opacity", {
+            property: "material.opacity",
+            from: 1,
+            to: 0,
+            dur: 1500,
+            easing: "easeOutQuad",
+          });
+
+          scene.appendChild(heart);
+
+          // 动画完成后移除爱心
+          setTimeout(() => {
+            if (heart.parentNode) {
+              scene.removeChild(heart);
+            }
+          }, 1600);
+        }
+      }
+    </script>
+  </body>
+</html>
