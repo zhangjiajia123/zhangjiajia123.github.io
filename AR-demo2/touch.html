@@ -15,6 +15,7 @@
   >
     <a-marker type="pattern" preset="custom" url="/AR-demo/pattern/marker.patt">
       <a-entity
+        on-model-click
         id="model-entity"
         gltf-model="/AR-demo/model/smoking_boy/scene.gltf"
         position="0 0 0"
@@ -33,19 +34,26 @@
 <%}%>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
+    AFRAME.registerComponent("on-model-click", {
+      init: function () {
+        this.el.addEventListener("click", function () {
+          alert("模型被点击了！");
+        });
+      },
+    });
     const scene = document.getElementById("scene");
-    
+
     // 等待场景加载完成
     scene.addEventListener("loaded", function () {
       console.log("A-Frame场景加载完成");
-      
+
       // 监听标记找到事件（当扫描到NFT标记时）
-      const marker = document.querySelector('a-marker');
+      const marker = document.querySelector("a-marker");
       marker.addEventListener("markerFound", function () {
         console.log("标记被识别，模型开始加载");
-        
+
         const modelEntity = document.getElementById("model-entity");
-        
+
         // 监听模型加载完成事件
         modelEntity.addEventListener("model-loaded", function () {
           console.log("GLTF模型加载成功！");
@@ -58,7 +66,7 @@
           console.error("GLTF模型加载失败！");
         });
       });
-      
+
       // 监听标记丢失事件
       marker.addEventListener("markerLost", function () {
         console.log("标记丢失");
@@ -77,7 +85,7 @@
     // 添加鼠标事件监听（用于非触摸设备）
     modelEntity.addEventListener("mousedown", handleTouchStart);
     modelEntity.addEventListener("mouseup", handleTouchEnd);
-    
+
     console.log("触摸交互已初始化");
   }
 
@@ -88,14 +96,14 @@
 
     // 添加触摸反馈效果
     const modelEntity = document.getElementById("model-entity");
-    
+
     // 注意：GLTF模型可能有多个材质，直接设置颜色可能不生效
     // 可以尝试添加一个高亮效果或使用动画
     modelEntity.setAttribute("animation", {
       property: "scale",
       to: "0.32 0.32 0.32",
       dur: 200,
-      easing: "easeOutQuad"
+      easing: "easeOutQuad",
     });
 
     // 开始计时，判断是否为长按（抚摸）
@@ -107,13 +115,13 @@
     event.stopPropagation();
 
     const modelEntity = document.getElementById("model-entity");
-    
+
     // 恢复原始大小
     modelEntity.setAttribute("animation", {
       property: "scale",
       to: "0.3 0.3 0.3",
       dur: 200,
-      easing: "easeOutQuad"
+      easing: "easeOutQuad",
     });
 
     // 计算触摸时长
@@ -153,14 +161,17 @@
         "geometry",
         "primitive: plane; width: 0.1; height: 0.1"
       );
-      heart.setAttribute("material", "color: red; transparent: true; opacity: 1");
-      
+      heart.setAttribute(
+        "material",
+        "color: red; transparent: true; opacity: 1"
+      );
+
       // 从模型位置开始
       const modelPosition = modelEntity.getAttribute("position");
       heart.setAttribute("position", {
         x: modelPosition.x,
         y: modelPosition.y + 0.5,
-        z: modelPosition.z
+        z: modelPosition.z,
       });
 
       // 随机动画参数
@@ -214,15 +225,15 @@
       text-align: center;
       backdrop-filter: blur(10px);
     `;
-    
+
     infoPanel.innerHTML = `
       <h3 style="margin: 0 0 10px 0;">${title}</h3>
       <p style="margin: 0;">${content}</p>
       <button onclick="this.parentElement.remove()" style="margin-top: 10px; padding: 5px 15px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">关闭</button>
     `;
-    
+
     document.body.appendChild(infoPanel);
-    
+
     // 3秒后自动关闭
     setTimeout(() => {
       if (infoPanel.parentNode) {
