@@ -33,14 +33,14 @@
 </script>
 <%}%>
 <script>
+  AFRAME.registerComponent("on-model-click", {
+    init: function () {
+      this.el.addEventListener("click", function () {
+        alert("模型被点击了！");
+      });
+    },
+  });
   document.addEventListener("DOMContentLoaded", function () {
-    AFRAME.registerComponent("on-model-click", {
-      init: function () {
-        this.el.addEventListener("click", function () {
-          alert("模型被点击了！");
-        });
-      },
-    });
     const scene = document.getElementById("scene");
 
     // 等待场景加载完成
