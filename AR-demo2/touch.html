@@ -25,9 +25,9 @@
   // 移除触摸交互
   function removeTouchInteraction() {
     const modelEntity = document.getElementById("model-entity"); // 使用正确的ID
-
+    modelEntity.removeAttribute("click", function () {});
     // 移除触摸事件监听
-    modelEntity.removeEventListener("click", handleTouchStart);
+    // modelEntity.removeEventListener("touchstart", handleTouchStart);
     // modelEntity.removeEventListener("touchend", handleTouchEnd);
 
     // // 移除鼠标事件监听（用于非触摸设备）
@@ -37,16 +37,18 @@
   // 初始化触摸交互
   function initTouchInteraction() {
     const modelEntity = document.getElementById("model-entity"); // 使用正确的ID
-
+    modelEntity.addEventListener("click", function () { 
+      alert("点击了模型");
+    });
     // 添加触摸事件监听
-    modelEntity.addEventListener("click", handleTouchStart);
+    // modelEntity.addEventListener("touchstart", handleTouchStart);
     // modelEntity.addEventListener("touchend", handleTouchEnd);
 
     // // 添加鼠标事件监听（用于非触摸设备）
     // modelEntity.addEventListener("mousedown", handleTouchStart);
     // modelEntity.addEventListener("mouseup", handleTouchEnd);
 
-    // console.log("触摸交互已初始化");
+    console.log("触摸交互已初始化");
   }
 
   // 处理触摸开始
