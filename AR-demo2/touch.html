@@ -15,21 +15,21 @@
       });
     },
   });
-  AFRAME.registerComponent("registerevents", {
-    init: function () {
-      var marker = this.el;
+  // AFRAME.registerComponent("registerevents", {
+  //   init: function () {
+  //     var marker = this.el;
 
-      marker.addEventListener("markerFound", function () {
-        console.log("markerFound");
-        initTouchInteraction(marker);
-      });
+  //     marker.addEventListener("markerFound", function () {
+  //       console.log("markerFound");
+  //       initTouchInteraction(marker);
+  //     });
 
-      marker.addEventListener("markerLost", function () {
-        console.log("markerLost");
-        removeTouchInteraction();
-      });
-    },
-  });
+  //     marker.addEventListener("markerLost", function () {
+  //       console.log("markerLost");
+  //       removeTouchInteraction();
+  //     });
+  //   },
+  // });
 
   // 移除触摸交互
   function removeTouchInteraction() {
@@ -249,7 +249,6 @@
     embedded
     renderer="logarithmicDepthBuffer: true;"
     vr-mode-ui="enabled: false"
-    gesture-detector
     id="scene"
   >
     <!-- 添加爱心纹理 -->
