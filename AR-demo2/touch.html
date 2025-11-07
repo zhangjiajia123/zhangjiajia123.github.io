@@ -15,6 +15,7 @@
   >
     <a-marker type="pattern" preset="custom" url="/AR-demo/pattern/marker.patt">
       <a-entity
+        id="model-entity"
         gltf-model="/AR-demo/model/smoking_boy/scene.gltf"
         position="0 0 0"
         scale="0.3 0.3 0.3"
@@ -32,32 +33,32 @@
 </script>
 <%}%>
 <script>
-  window.onload = function () {
-    AFRAME.registerComponent("on-model-click", {
-      init: function () {
-        var marker = this.el;
-        console.log(`output->marker`,marker)
-        this.vid = document.querySelector("#model-entity");
-        console.log(`output->this.vid`,this.vid)
-        marker.addEventListener(
-          "markerFound",
-          function () {
-            // 丢失标识图
-            console.log(`output->发现标识图`);
-            initTouchInteraction();
-          }.bind(this)
-        );
+  // window.onload = function () {
+  //   AFRAME.registerComponent("on-model-click", {
+  //     init: function () {
+  //       var marker = this.el;
+  //       console.log(`output->marker`,marker)
+  //       this.vid = document.querySelector("#model-entity");
+  //       console.log(`output->this.vid`,this.vid)
+  //       marker.addEventListener(
+  //         "markerFound",
+  //         function () {
+  //           // 丢失标识图
+  //           console.log(`output->发现标识图`);
+  //           initTouchInteraction();
+  //         }.bind(this)
+  //       );
 
-        marker.addEventListener(
-          "markerLost",
-          function () {
-            // 丢失标识图
-            console.log(`output->丢失标识图`);
-          }.bind(this)
-        );
-      },
-    });
-  };
+  //       marker.addEventListener(
+  //         "markerLost",
+  //         function () {
+  //           // 丢失标识图
+  //           console.log(`output->丢失标识图`);
+  //         }.bind(this)
+  //       );
+  //     },
+  //   });
+  // };
   document.addEventListener("DOMContentLoaded", function () {
     // AFRAME.registerComponent("on-model-click", {
     //   init: function () {
@@ -86,7 +87,8 @@
     scene.addEventListener("loaded", function () {
       console.log("A-Frame场景加载完成");
       // 监听标记找到事件（当扫描到NFT标记时）
-      const marker = document.querySelector("a-entity");
+      const marker = document.getElementById("model-entity");
+      console.log(`output->marker`,marker)
       marker.addEventListener("markerFound", function () {
         console.log("标记被识别，模型开始加载");
       });
