@@ -1,46 +1,30 @@
 <script src="./js/aframe-master.min.js"></script>
 <script src="./js/aframe-ar-nft.js"></script>
 <script src="./js/gestures.js"></script>
-<script></script>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 </head>
-
 <body style="margin: 0px; overflow: hidden">
-
-  <!-- a-frame scene -->
   <a-scene
-    vr-mode-ui="enabled: false;"
-    gesture-detector
-    renderer="logarithmicDepthBuffer: true;"
+    arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
     embedded
-    arjs="trackingMethod: best; sourceType: webcam;debugUIEnabled: false;"
+    renderer="logarithmicDepthBuffer: true;"
+    vr-mode-ui="enabled: false"
+    gesture-detector
+    id="scene"
   >
-    <!-- 图片训练后文件路径，不带文件拓展名！ -->
-    <a-nft
-      on-model-click
-      type="nft"
-      url="/AR-demo/nft/smoking_boy/smoking_boy"
-      smooth="true"
-      smoothCount="10"
-      smoothTolerance=".01"
-      smoothThreshold="5"
-    >
-      <!-- 展示模型的路径 -->
+    <a-marker type="pattern" preset="custom" url="/AR-demo/pattern/marker.patt">
       <a-entity
-        id="model-entity"
         gltf-model="/AR-demo/model/smoking_boy/scene.gltf"
-        scale="50 50 50"
-        gesture-handler="minScale: 0.25; maxScale: 10"
-        position="150 100 0"
+        position="0 0 0"
+        scale="0.3 0.3 0.3"
         rotation="-90 0 0"
-      >
-      </a-entity>
-    </a-nft>
-    <!-- 静态摄像机根据设备的移动而移动 -->
-    <a-entity camera="fov: 190"></a-entity>
+      ></a-entity>
+    </a-marker>
+    <a-entity camera></a-entity>
   </a-scene>
 </body>
+
 <%if(CurrMember.getYuanGzryState()==3){%>
 <script src="https://cdn.banyou.70180.cn/assets/xcontent/vconsole/vconsole.min.js"></script>
 <script>
@@ -97,20 +81,20 @@
     //     );
     //   },
     // });
-    // const scene = document.querySelector("a-scene");
-    // // 等待场景加载完成
-    // scene.addEventListener("loaded", function () {
-    //   console.log("A-Frame场景加载完成");
-    //   // 监听标记找到事件（当扫描到NFT标记时）
-    //   const marker = document.querySelector("a-entity");
-    //   marker.addEventListener("markerFound", function () {
-    //     console.log("标记被识别，模型开始加载");
-    //   });
-    //   // 监听标记丢失事件
-    //   marker.addEventListener("markerLost", function () {
-    //     console.log("标记丢失");
-    //   });
-    // });
+    const scene = document.querySelector("a-scene");
+    // 等待场景加载完成
+    scene.addEventListener("loaded", function () {
+      console.log("A-Frame场景加载完成");
+      // 监听标记找到事件（当扫描到NFT标记时）
+      const marker = document.querySelector("a-entity");
+      marker.addEventListener("markerFound", function () {
+        console.log("标记被识别，模型开始加载");
+      });
+      // 监听标记丢失事件
+      marker.addEventListener("markerLost", function () {
+        console.log("标记丢失");
+      });
+    });
   });
 
   // 初始化触摸交互
