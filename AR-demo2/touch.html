@@ -12,7 +12,7 @@
 
       marker.addEventListener("markerFound", function () {
         console.log("markerFound");
-        initTouchInteraction()
+        initTouchInteraction(marker);
       });
 
       marker.addEventListener("markerLost", function () {
@@ -24,31 +24,51 @@
 
   // 移除触摸交互
   function removeTouchInteraction() {
-    const modelEntity = document.getElementById("model-entity"); // 使用正确的ID
-    modelEntity.removeAttribute("click", function () {});
-    // 移除触摸事件监听
-    // modelEntity.removeEventListener("touchstart", handleTouchStart);
-    // modelEntity.removeEventListener("touchend", handleTouchEnd);
-
-    // // 移除鼠标事件监听（用于非触摸设备）
-    // modelEntity.removeEventListener("mousedown", handleTouchStart);
-    // modelEntity.removeEventListener("mouseup", handleTouchEnd);
+    const modelEntity = document.getElementById("model-entity");
+    if (modelEntity) {
+      // 移除所有可能的事件监听器
+      modelEntity.removeEventListener("click", handleModelClick);
+      modelEntity.removeEventListener("touchstart", handleTouchStart);
+      modelEntity.removeEventListener("touchend", handleTouchEnd);
+      modelEntity.removeEventListener("mousedown", handleTouchStart);
+      modelEntity.removeEventListener("mouseup", handleTouchEnd);
+    }
   }
-  // 初始化触摸交互
-  function initTouchInteraction() {
-    const modelEntity = document.getElementById("model-entity"); // 使用正确的ID
-    modelEntity.addEventListener("click", function () { 
-      alert("点击了模型");
-    });
-    // 添加触摸事件监听
-    // modelEntity.addEventListener("touchstart", handleTouchStart);
-    // modelEntity.addEventListener("touchend", handleTouchEnd);
 
-    // // 添加鼠标事件监听（用于非触摸设备）
-    // modelEntity.addEventListener("mousedown", handleTouchStart);
-    // modelEntity.addEventListener("mouseup", handleTouchEnd);
+  // 初始化触摸交互
+  function initTouchInteraction(marker) {
+    // 从 marker 的子元素中查找模型实体
+    const modelEntity = marker.querySelector("#model-entity");
+    
+    if (!modelEntity) {
+      console.error("找不到 model-entity 元素");
+      return;
+    }
+
+    console.log("找到模型实体:", modelEntity);
+    
+    // 先移除可能存在的旧事件监听器
+    modelEntity.removeEventListener("click", handleModelClick);
+    
+    // 添加新的点击事件监听器
+    modelEntity.addEventListener("click", handleModelClick);
+    
+    // 添加触摸事件监听
+    modelEntity.addEventListener("touchstart", handleTouchStart);
+    modelEntity.addEventListener("touchend", handleTouchEnd);
+
+    // 添加鼠标事件监听（用于非触摸设备）
+    modelEntity.addEventListener("mousedown", handleTouchStart);
+    modelEntity.addEventListener("mouseup", handleTouchEnd);
 
     console.log("触摸交互已初始化");
+  }
+
+  // 处理模型点击事件
+  function handleModelClick(event) {
+    console.log("点击了模型");
+    event.stopPropagation();
+    alert("点击了模型");
   }
 
   // 处理触摸开始
@@ -56,11 +76,10 @@
     console.log("处理触摸开始");
     event.stopPropagation();
 
-    // 添加触摸反馈效果
     const modelEntity = document.getElementById("model-entity");
+    if (!modelEntity) return;
 
-    // 注意：GLTF模型可能有多个材质，直接设置颜色可能不生效
-    // 可以尝试添加一个高亮效果或使用动画
+    // 添加触摸反馈效果
     modelEntity.setAttribute("animation", {
       property: "scale",
       to: "0.32 0.32 0.32",
@@ -77,6 +96,7 @@
     event.stopPropagation();
 
     const modelEntity = document.getElementById("model-entity");
+    if (!modelEntity) return;
 
     // 恢复原始大小
     modelEntity.setAttribute("animation", {
@@ -87,7 +107,7 @@
     });
 
     // 计算触摸时长
-    const touchDuration = Date.now() - this.touchStartTime;
+    const touchDuration = Date.now() - (this.touchStartTime || 0);
 
     // 如果触摸时间超过500ms，认为是抚摸动作
     if (touchDuration > 500) {
@@ -99,6 +119,7 @@
   function triggerPettingAction() {
     console.log("触发抚摸动作");
     const modelEntity = document.getElementById("model-entity");
+    if (!modelEntity) return;
 
     // 显示爱心粒子效果
     createHeartParticles();
@@ -116,6 +137,9 @@
   function createHeartParticles() {
     const scene = document.querySelector("a-scene");
     const modelEntity = document.getElementById("model-entity");
+    if (!modelEntity) return;
+
+    const modelPosition = modelEntity.getAttribute("position");
 
     for (let i = 0; i < 5; i++) {
       const heart = document.createElement("a-entity");
@@ -125,15 +149,14 @@
       );
       heart.setAttribute(
         "material",
-        "color: red; transparent: true; opacity: 1"
+        "src: #heart-texture; transparent: true; opacity: 1"
       );
 
       // 从模型位置开始
-      const modelPosition = modelEntity.getAttribute("position");
       heart.setAttribute("position", {
-        x: modelPosition.x,
-        y: modelPosition.y + 0.5,
-        z: modelPosition.z,
+        x: modelPosition.x + (Math.random() - 0.5) * 0.2,
+        y: modelPosition.y + 0.3,
+        z: modelPosition.z + (Math.random() - 0.5) * 0.2,
       });
 
       // 随机动画参数
@@ -214,6 +237,11 @@
     gesture-detector
     id="scene"
   >
+    <!-- 添加爱心纹理 -->
+    <a-assets>
+      <img id="heart-texture" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJyZWQiIGQ9Ik00NjMuMiAxMTQuNWMtMjcuOC0yNy44LTcyLjgtMjcuOC0xMDAuNiAwTDI1NiAyMTcuMkwxNDkuNCAxMTQuNWMtMjcuOC0yNy44LTcyLjgtMjcuOC0xMDAuNiAwcy0yNy44IDcyLjggMCAxMDAuNkwxNTUuOCAyNTZsLTEwNi45IDEwNi45Yy0yNy44IDI3LjgtMjcuOCA3Mi44IDAgMTAwLjYgMjcuOCAyNy44IDcyLjggMjcuOCAxMDAuNiAwTDI1NiAyOTQuN2wxMDYuNiAxMDYuOWMyNy44IDI3LjggNzIuOCAyNy44IDEwMC42IDAgMjcuOC0yNy44IDI3LjgtNzIuOCAwLTEwMC42TDM1Ni4yIDI1NmwxMDYuOS0xMDYuOWMyNy44LTI3LjggMjcuOC03Mi44IDAtMTAwLjZ6Ii8+PC9zdmc+" crossorigin="anonymous">
+    </a-assets>
+    
     <a-marker
       registerevents
       type="pattern"
@@ -226,81 +254,9 @@
         position="0 0 0"
         scale="0.3 0.3 0.3"
         rotation="-90 0 0"
+        class="clickable"
       ></a-entity>
     </a-marker>
     <a-entity camera></a-entity>
   </a-scene>
 </body>
-
-<%if(CurrMember.getYuanGzryState()==3){%>
-<script src="https://cdn.banyou.70180.cn/assets/xcontent/vconsole/vconsole.min.js"></script>
-<script>
-  let vConsole = new window.VConsole();
-</script>
-<%}%>
-<script>
-  // window.onload = function () {
-  //   AFRAME.registerComponent("on-model-click", {
-  //     init: function () {
-  //       var marker = this.el;
-  //       console.log(`output->marker`,marker)
-  //       this.vid = document.querySelector("#model-entity");
-  //       console.log(`output->this.vid`,this.vid)
-  //       marker.addEventListener(
-  //         "markerFound",
-  //         function () {
-  //           // 丢失标识图
-  //           console.log(`output->发现标识图`);
-  //           initTouchInteraction();
-  //         }.bind(this)
-  //       );
-
-  //       marker.addEventListener(
-  //         "markerLost",
-  //         function () {
-  //           // 丢失标识图
-  //           console.log(`output->丢失标识图`);
-  //         }.bind(this)
-  //       );
-  //     },
-  //   });
-  // };
-  document.addEventListener("DOMContentLoaded", function () {
-    // AFRAME.registerComponent("on-model-click", {
-    //   init: function () {
-    //     var marker = this.el;
-    //     this.vid = document.querySelector("#model-entity");
-    //     marker.addEventListener(
-    //       "markerFound",
-    //       function () {
-    //         // 丢失标识图
-    //         console.log(`output->发现标识图`);
-    //         initTouchInteraction();
-    //       }.bind(this)
-    //     );
-    //     marker.addEventListener(
-    //       "markerLost",
-    //       function () {
-    //         // 丢失标识图
-    //         console.log(`output->丢失标识图`);
-    //       }.bind(this)
-    //     );
-    //   },
-    // });
-    // const scene = document.querySelector("a-scene");
-    // // 等待场景加载完成
-    // scene.addEventListener("loaded", function () {
-    //   console.log("A-Frame场景加载完成");
-    //   // 监听标记找到事件（当扫描到NFT标记时）
-    //   const marker = document.getElementById("model-entity");
-    //   console.log(`output->marker`,marker)
-    //   marker.addEventListener("markerFound", function () {
-    //     console.log("标记被识别，模型开始加载");
-    //   });
-    //   // 监听标记丢失事件
-    //   marker.addEventListener("markerLost", function () {
-    //     console.log("标记丢失");
-    //   });
-    // });
-  });
-</script>
