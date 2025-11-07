@@ -4,6 +4,33 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 </head>
+<script>
+  window.addEventListener("camera-init", (data) => {
+    console.log("camera-init", data);
+  });
+
+  window.addEventListener("camera-error", (error) => {
+    console.log("camera-error", error);
+  });
+
+  AFRAME.registerComponent("registerevents", {
+    init: function () {
+      var marker = this.el;
+
+      marker.addEventListener("markerFound", function () {
+        var markerId = marker.id;
+        console.log("markerFound", markerId);
+        // TODO: Add your own code here to react to the marker being found.
+      });
+
+      marker.addEventListener("markerLost", function () {
+        var markerId = marker.id;
+        console.log("markerLost", markerId);
+        // TODO: Add your own code here to react to the marker being lost.
+      });
+    },
+  });
+</script>
 <body style="margin: 0px; overflow: hidden">
   <a-scene
     arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
@@ -13,7 +40,12 @@
     gesture-detector
     id="scene"
   >
-    <a-marker type="pattern" preset="custom" url="/AR-demo/pattern/marker.patt">
+    <a-marker
+      registerevents
+      type="pattern"
+      preset="custom"
+      url="/AR-demo/pattern/marker.patt"
+    >
       <a-entity
         id="model-entity"
         gltf-model="/AR-demo/model/smoking_boy/scene.gltf"
@@ -72,7 +104,6 @@
     //         initTouchInteraction();
     //       }.bind(this)
     //     );
-
     //     marker.addEventListener(
     //       "markerLost",
     //       function () {
@@ -82,21 +113,21 @@
     //     );
     //   },
     // });
-    const scene = document.querySelector("a-scene");
-    // 等待场景加载完成
-    scene.addEventListener("loaded", function () {
-      console.log("A-Frame场景加载完成");
-      // 监听标记找到事件（当扫描到NFT标记时）
-      const marker = document.getElementById("model-entity");
-      console.log(`output->marker`,marker)
-      marker.addEventListener("markerFound", function () {
-        console.log("标记被识别，模型开始加载");
-      });
-      // 监听标记丢失事件
-      marker.addEventListener("markerLost", function () {
-        console.log("标记丢失");
-      });
-    });
+    // const scene = document.querySelector("a-scene");
+    // // 等待场景加载完成
+    // scene.addEventListener("loaded", function () {
+    //   console.log("A-Frame场景加载完成");
+    //   // 监听标记找到事件（当扫描到NFT标记时）
+    //   const marker = document.getElementById("model-entity");
+    //   console.log(`output->marker`,marker)
+    //   marker.addEventListener("markerFound", function () {
+    //     console.log("标记被识别，模型开始加载");
+    //   });
+    //   // 监听标记丢失事件
+    //   marker.addEventListener("markerLost", function () {
+    //     console.log("标记丢失");
+    //   });
+    // });
   });
 
   // 初始化触摸交互
