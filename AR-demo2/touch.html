@@ -12,30 +12,12 @@
 
       marker.addEventListener("markerFound", function () {
         console.log("markerFound");
-        // initTouchInteraction()
-        document.addEventListener("touchstart", (e) => {
-          e.preventDefault();
-          const touch = e.touches[0];
-          // 创建射线发射器
-          const raycaster = new THREE.Raycaster();
-          const scene = new THREE.Scene();
-          // 检测与物体的交点
-          const intersects = raycaster.intersectObjects(scene.children, true);
-          if (intersects.length > 0) {
-            const clickedObject = intersects[0].object;
-            clickedObject.dispatchEvent(new Event("objectClicked"));
-            // 触发自定义事件或直接处理
-            alert("点击了模型");
-          }
-        });
+        initTouchInteraction()
       });
 
       marker.addEventListener("markerLost", function () {
         console.log("markerLost");
-        // removeTouchInteraction();
-        document.removeEventListener("touchstart", (e) => {
-          e.preventDefault();
-        })
+        removeTouchInteraction();
       });
     },
   });
@@ -45,26 +27,26 @@
     const modelEntity = document.getElementById("model-entity"); // 使用正确的ID
 
     // 移除触摸事件监听
-    modelEntity.removeEventListener("touchstart", handleTouchStart);
-    modelEntity.removeEventListener("touchend", handleTouchEnd);
+    modelEntity.removeEventListener("click", handleTouchStart);
+    // modelEntity.removeEventListener("touchend", handleTouchEnd);
 
-    // 移除鼠标事件监听（用于非触摸设备）
-    modelEntity.removeEventListener("mousedown", handleTouchStart);
-    modelEntity.removeEventListener("mouseup", handleTouchEnd);
+    // // 移除鼠标事件监听（用于非触摸设备）
+    // modelEntity.removeEventListener("mousedown", handleTouchStart);
+    // modelEntity.removeEventListener("mouseup", handleTouchEnd);
   }
   // 初始化触摸交互
   function initTouchInteraction() {
     const modelEntity = document.getElementById("model-entity"); // 使用正确的ID
 
     // 添加触摸事件监听
-    modelEntity.addEventListener("touchstart", handleTouchStart);
-    modelEntity.addEventListener("touchend", handleTouchEnd);
+    modelEntity.addEventListener("click", handleTouchStart);
+    // modelEntity.addEventListener("touchend", handleTouchEnd);
 
-    // 添加鼠标事件监听（用于非触摸设备）
-    modelEntity.addEventListener("mousedown", handleTouchStart);
-    modelEntity.addEventListener("mouseup", handleTouchEnd);
+    // // 添加鼠标事件监听（用于非触摸设备）
+    // modelEntity.addEventListener("mousedown", handleTouchStart);
+    // modelEntity.addEventListener("mouseup", handleTouchEnd);
 
-    console.log("触摸交互已初始化");
+    // console.log("触摸交互已初始化");
   }
 
   // 处理触摸开始
