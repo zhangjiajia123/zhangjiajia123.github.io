@@ -6,6 +6,15 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 </head>
 <script>
+  // 替代方案：使用 A-Frame 的 click 事件组件
+  AFRAME.registerComponent("click-handler", {
+    init: function () {
+      this.el.addEventListener("click", (event) => {
+        console.log("模型被点击了");
+        alert("点击了模型");
+      });
+    },
+  });
   AFRAME.registerComponent("registerevents", {
     init: function () {
       var marker = this.el;
@@ -259,6 +268,7 @@
       url="/AR-demo/pattern/marker.patt"
     >
       <a-entity
+        click-handler
         id="model-entity"
         gltf-model="/AR-demo/model/smoking_boy/scene.gltf"
         position="0 0 0"
