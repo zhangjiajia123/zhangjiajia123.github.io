@@ -39,20 +39,20 @@
   function initTouchInteraction(marker) {
     // 从 marker 的子元素中查找模型实体
     const modelEntity = marker.querySelector("#model-entity");
-    
+
     if (!modelEntity) {
       console.error("找不到 model-entity 元素");
       return;
     }
 
     console.log("找到模型实体:", modelEntity);
-    
+
     // 先移除可能存在的旧事件监听器
     modelEntity.removeEventListener("click", handleModelClick);
-    
+
     // 添加新的点击事件监听器
     modelEntity.addEventListener("click", handleModelClick);
-    
+
     // 添加触摸事件监听
     modelEntity.addEventListener("touchstart", handleTouchStart);
     modelEntity.addEventListener("touchend", handleTouchEnd);
@@ -227,7 +227,13 @@
     }, 5000);
   }
 </script>
-
+<!-- 部署测试环境时放开 vconsole 用于测试  -->
+<%if(CurrMember.getYuanGzryState()==3){%>
+<script src="https://cdn.banyou.70180.cn/assets/xcontent/vconsole/vconsole.min.js"></script>
+<script>
+  let vConsole = new window.VConsole();
+</script>
+<%}%>
 <body style="margin: 0px; overflow: hidden">
   <a-scene
     arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
@@ -239,9 +245,13 @@
   >
     <!-- 添加爱心纹理 -->
     <a-assets>
-      <img id="heart-texture" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJyZWQiIGQ9Ik00NjMuMiAxMTQuNWMtMjcuOC0yNy44LTcyLjgtMjcuOC0xMDAuNiAwTDI1NiAyMTcuMkwxNDkuNCAxMTQuNWMtMjcuOC0yNy44LTcyLjgtMjcuOC0xMDAuNiAwcy0yNy44IDcyLjggMCAxMDAuNkwxNTUuOCAyNTZsLTEwNi45IDEwNi45Yy0yNy44IDI3LjgtMjcuOCA3Mi44IDAgMTAwLjYgMjcuOCAyNy44IDcyLjggMjcuOCAxMDAuNiAwTDI1NiAyOTQuN2wxMDYuNiAxMDYuOWMyNy44IDI3LjggNzIuOCAyNy44IDEwMC42IDAgMjcuOC0yNy44IDI3LjgtNzIuOCAwLTEwMC42TDM1Ni4yIDI1NmwxMDYuOS0xMDYuOWMyNy44LTI3LjggMjcuOC03Mi44IDAtMTAwLjZ6Ii8+PC9zdmc+" crossorigin="anonymous">
+      <img
+        id="heart-texture"
+        src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJyZWQiIGQ9Ik00NjMuMiAxMTQuNWMtMjcuOC0yNy44LTcyLjgtMjcuOC0xMDAuNiAwTDI1NiAyMTcuMkwxNDkuNCAxMTQuNWMtMjcuOC0yNy44LTcyLjgtMjcuOC0xMDAuNiAwcy0yNy44IDcyLjggMCAxMDAuNkwxNTUuOCAyNTZsLTEwNi45IDEwNi45Yy0yNy44IDI3LjgtMjcuOCA3Mi44IDAgMTAwLjYgMjcuOCAyNy44IDcyLjggMjcuOCAxMDAuNiAwTDI1NiAyOTQuN2wxMDYuNiAxMDYuOWMyNy44IDI3LjggNzIuOCAyNy44IDEwMC42IDAgMjcuOC0yNy44IDI3LjgtNzIuOCAwLTEwMC42TDM1Ni4yIDI1NmwxMDYuOS0xMDYuOWMyNy44LTI3LjggMjcuOC03Mi44IDAtMTAwLjZ6Ii8+PC9zdmc+"
+        crossorigin="anonymous"
+      />
     </a-assets>
-    
+
     <a-marker
       registerevents
       type="pattern"
