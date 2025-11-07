@@ -32,8 +32,6 @@
     mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
 
-    // 更新射线
-    raycaster.setFromCamera(mouse, camera);
 
     // 检测与物体的交点
     const intersects = raycaster.intersectObjects(scene.children, true);
@@ -41,6 +39,7 @@
       const clickedObject = intersects[0].object;
       clickedObject.dispatchEvent(new Event("objectClicked"));
       // 触发自定义事件或直接处理
+      alert("点击了模型");
     }
   });
   // 移除触摸交互
