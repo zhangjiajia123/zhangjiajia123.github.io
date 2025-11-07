@@ -1,37 +1,12 @@
 <script src="./js/aframe-master.min.js"></script>
 <script src="./js/aframe-ar-nft.js"></script>
 <script src="./js/gestures.js"></script>
-<script> 
-</script>
+<script></script>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 </head>
 
-<style>
-  .arjs-loader {
-    height: 100%;
-    width: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    background-color: rgba(0, 0, 0, 0.8);
-    z-index: 9999;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .arjs-loader div {
-    text-align: center;
-    font-size: 1.25em;
-    color: white;
-  }
-</style>
-
 <body style="margin: 0px; overflow: hidden">
-  <div class="arjs-loader">
-    <div>正在加载AR模型，请稍候...</div>
-  </div>
 
   <!-- a-frame scene -->
   <a-scene
@@ -53,6 +28,7 @@
     >
       <!-- 展示模型的路径 -->
       <a-entity
+        id="model-entity"
         gltf-model="/AR-demo/model/smoking_boy/scene.gltf"
         scale="50 50 50"
         gesture-handler="minScale: 0.25; maxScale: 10"
@@ -66,177 +42,213 @@
   </a-scene>
 </body>
 <%if(CurrMember.getYuanGzryState()==3){%>
-  <script src="https://cdn.banyou.70180.cn/assets/xcontent/vconsole/vconsole.min.js"></script>
-  <script>
-    let vConsole = new window.VConsole();
-  </script>
-  <%}%>
-    <script>
-      window.onload = function () {
-        AFRAME.registerComponent("on-model-click", {
-          init: function () {
-            var marker = this.el;
+<script src="https://cdn.banyou.70180.cn/assets/xcontent/vconsole/vconsole.min.js"></script>
+<script>
+  let vConsole = new window.VConsole();
+</script>
+<%}%>
+<script>
+  // window.onload = function () {
+  //   AFRAME.registerComponent("on-model-click", {
+  //     init: function () {
+  //       var marker = this.el;
+  //       this.vid = document.querySelector("#model-entity");
+  //       marker.addEventListener(
+  //         "markerFound",
+  //         function () {
+  //           // 丢失标识图
+  //           console.log(`output->发现标识图`);
+  //           initTouchInteraction();
+  //         }.bind(this)
+  //       );
 
-            this.vid = document.querySelector("#model-entity");
+  //       marker.addEventListener(
+  //         "markerLost",
+  //         function () {
+  //           // 丢失标识图
+  //           console.log(`output->丢失标识图`);
+  //         }.bind(this)
+  //       );
+  //     },
+  //   });
+  // };
+  document.addEventListener("DOMContentLoaded", function () {
+    // AFRAME.registerComponent("on-model-click", {
+    //   init: function () {
+    //     var marker = this.el;
+    //     this.vid = document.querySelector("#model-entity");
+    //     marker.addEventListener(
+    //       "markerFound",
+    //       function () {
+    //         // 丢失标识图
+    //         console.log(`output->发现标识图`);
+    //         initTouchInteraction();
+    //       }.bind(this)
+    //     );
 
-            marker.addEventListener(
-              "markerFound",
-              function () {
-                // 丢失标识图
-                console.log(`output->发现标识图`)
-                initTouchInteraction()
-              }.bind(this)
-            );
+    //     marker.addEventListener(
+    //       "markerLost",
+    //       function () {
+    //         // 丢失标识图
+    //         console.log(`output->丢失标识图`);
+    //       }.bind(this)
+    //     );
+    //   },
+    // });
+    const scene = document.querySelector("a-scene");
+    // 等待场景加载完成
+    scene.addEventListener("loaded", function () {
+      console.log("A-Frame场景加载完成");
+      // 监听标记找到事件（当扫描到NFT标记时）
+      const marker = document.querySelector("a-entity");
+      marker.addEventListener("markerFound", function () {
+        console.log("标记被识别，模型开始加载");
+      });
+      // 监听标记丢失事件
+      marker.addEventListener("markerLost", function () {
+        console.log("标记丢失");
+      });
+    });
+  });
 
-            marker.addEventListener(
-              "markerLost",
-              function () {
-                // 丢失标识图
-                console.log(`output->丢失标识图`)
-              }.bind(this)
-            );
-          },
-        });
-      };
+  // 初始化触摸交互
+  function initTouchInteraction() {
+    const modelEntity = document.getElementById("model-entity"); // 使用正确的ID
 
-      // 初始化触摸交互
-      function initTouchInteraction() {
-        const modelEntity = document.getElementById("model-entity"); // 使用正确的ID
+    // 添加触摸事件监听
+    modelEntity.addEventListener("touchstart", handleTouchStart);
+    modelEntity.addEventListener("touchend", handleTouchEnd);
 
-        // 添加触摸事件监听
-        modelEntity.addEventListener("touchstart", handleTouchStart);
-        modelEntity.addEventListener("touchend", handleTouchEnd);
+    // 添加鼠标事件监听（用于非触摸设备）
+    modelEntity.addEventListener("mousedown", handleTouchStart);
+    modelEntity.addEventListener("mouseup", handleTouchEnd);
 
-        // 添加鼠标事件监听（用于非触摸设备）
-        modelEntity.addEventListener("mousedown", handleTouchStart);
-        modelEntity.addEventListener("mouseup", handleTouchEnd);
+    console.log("触摸交互已初始化");
+  }
 
-        console.log("触摸交互已初始化");
-      }
+  // 处理触摸开始
+  function handleTouchStart(event) {
+    console.log("处理触摸开始");
+    event.stopPropagation();
 
-      // 处理触摸开始
-      function handleTouchStart(event) {
-        console.log("处理触摸开始");
-        event.stopPropagation();
+    // 添加触摸反馈效果
+    const modelEntity = document.getElementById("model-entity");
 
-        // 添加触摸反馈效果
-        const modelEntity = document.getElementById("model-entity");
+    // 注意：GLTF模型可能有多个材质，直接设置颜色可能不生效
+    // 可以尝试添加一个高亮效果或使用动画
+    modelEntity.setAttribute("animation", {
+      property: "scale",
+      to: "0.32 0.32 0.32",
+      dur: 200,
+      easing: "easeOutQuad",
+    });
 
-        // 注意：GLTF模型可能有多个材质，直接设置颜色可能不生效
-        // 可以尝试添加一个高亮效果或使用动画
-        modelEntity.setAttribute("animation", {
-          property: "scale",
-          to: "0.32 0.32 0.32",
-          dur: 200,
-          easing: "easeOutQuad",
-        });
+    // 开始计时，判断是否为长按（抚摸）
+    this.touchStartTime = Date.now();
+  }
 
-        // 开始计时，判断是否为长按（抚摸）
-        this.touchStartTime = Date.now();
-      }
+  // 处理触摸结束
+  function handleTouchEnd(event) {
+    event.stopPropagation();
 
-      // 处理触摸结束
-      function handleTouchEnd(event) {
-        event.stopPropagation();
+    const modelEntity = document.getElementById("model-entity");
 
-        const modelEntity = document.getElementById("model-entity");
+    // 恢复原始大小
+    modelEntity.setAttribute("animation", {
+      property: "scale",
+      to: "0.3 0.3 0.3",
+      dur: 200,
+      easing: "easeOutQuad",
+    });
 
-        // 恢复原始大小
-        modelEntity.setAttribute("animation", {
-          property: "scale",
-          to: "0.3 0.3 0.3",
-          dur: 200,
-          easing: "easeOutQuad",
-        });
+    // 计算触摸时长
+    const touchDuration = Date.now() - this.touchStartTime;
 
-        // 计算触摸时长
-        const touchDuration = Date.now() - this.touchStartTime;
+    // 如果触摸时间超过500ms，认为是抚摸动作
+    if (touchDuration > 500) {
+      triggerPettingAction();
+    }
+  }
 
-        // 如果触摸时间超过500ms，认为是抚摸动作
-        if (touchDuration > 500) {
-          triggerPettingAction();
+  // 触发抚摸动作
+  function triggerPettingAction() {
+    console.log("触发抚摸动作");
+    const modelEntity = document.getElementById("model-entity");
+
+    // 显示爱心粒子效果
+    createHeartParticles();
+
+    // 显示信息弹窗
+    setTimeout(() => {
+      showInfoPanel(
+        "模型信息",
+        "这是一个吸烟男孩的3D模型，用于演示AR交互功能。"
+      );
+    }, 1500);
+  }
+
+  // 创建爱心粒子效果
+  function createHeartParticles() {
+    const scene = document.querySelector("a-scene");
+    const modelEntity = document.getElementById("model-entity");
+
+    for (let i = 0; i < 5; i++) {
+      const heart = document.createElement("a-entity");
+      heart.setAttribute(
+        "geometry",
+        "primitive: plane; width: 0.1; height: 0.1"
+      );
+      heart.setAttribute(
+        "material",
+        "color: red; transparent: true; opacity: 1"
+      );
+
+      // 从模型位置开始
+      const modelPosition = modelEntity.getAttribute("position");
+      heart.setAttribute("position", {
+        x: modelPosition.x,
+        y: modelPosition.y + 0.5,
+        z: modelPosition.z,
+      });
+
+      // 随机动画参数
+      const angle = Math.random() * Math.PI * 2;
+      const distance = 0.5 + Math.random() * 0.5;
+      const targetX = modelPosition.x + Math.cos(angle) * distance;
+      const targetY = modelPosition.y + 1 + Math.random();
+      const targetZ = modelPosition.z + Math.sin(angle) * distance;
+
+      heart.setAttribute("animation", {
+        property: "position",
+        to: `${targetX} ${targetY} ${targetZ}`,
+        dur: 1500,
+        easing: "easeOutQuad",
+      });
+
+      heart.setAttribute("animation__opacity", {
+        property: "material.opacity",
+        from: 1,
+        to: 0,
+        dur: 1500,
+        easing: "easeOutQuad",
+      });
+
+      scene.appendChild(heart);
+
+      // 动画完成后移除爱心
+      setTimeout(() => {
+        if (heart.parentNode) {
+          scene.removeChild(heart);
         }
-      }
+      }, 1600);
+    }
+  }
 
-      // 触发抚摸动作
-      function triggerPettingAction() {
-        console.log("触发抚摸动作");
-        const modelEntity = document.getElementById("model-entity");
-
-        // 显示爱心粒子效果
-        createHeartParticles();
-
-        // 显示信息弹窗
-        setTimeout(() => {
-          showInfoPanel(
-            "模型信息",
-            "这是一个吸烟男孩的3D模型，用于演示AR交互功能。"
-          );
-        }, 1500);
-      }
-
-      // 创建爱心粒子效果
-      function createHeartParticles() {
-        const scene = document.querySelector("a-scene");
-        const modelEntity = document.getElementById("model-entity");
-
-        for (let i = 0; i < 5; i++) {
-          const heart = document.createElement("a-entity");
-          heart.setAttribute(
-            "geometry",
-            "primitive: plane; width: 0.1; height: 0.1"
-          );
-          heart.setAttribute(
-            "material",
-            "color: red; transparent: true; opacity: 1"
-          );
-
-          // 从模型位置开始
-          const modelPosition = modelEntity.getAttribute("position");
-          heart.setAttribute("position", {
-            x: modelPosition.x,
-            y: modelPosition.y + 0.5,
-            z: modelPosition.z,
-          });
-
-          // 随机动画参数
-          const angle = Math.random() * Math.PI * 2;
-          const distance = 0.5 + Math.random() * 0.5;
-          const targetX = modelPosition.x + Math.cos(angle) * distance;
-          const targetY = modelPosition.y + 1 + Math.random();
-          const targetZ = modelPosition.z + Math.sin(angle) * distance;
-
-          heart.setAttribute("animation", {
-            property: "position",
-            to: `${targetX} ${targetY} ${targetZ}`,
-            dur: 1500,
-            easing: "easeOutQuad",
-          });
-
-          heart.setAttribute("animation__opacity", {
-            property: "material.opacity",
-            from: 1,
-            to: 0,
-            dur: 1500,
-            easing: "easeOutQuad",
-          });
-
-          scene.appendChild(heart);
-
-          // 动画完成后移除爱心
-          setTimeout(() => {
-            if (heart.parentNode) {
-              scene.removeChild(heart);
-            }
-          }, 1600);
-        }
-      }
-
-      // 显示信息面板
-      function showInfoPanel(title, content) {
-        // 创建自定义的信息面板
-        const infoPanel = document.createElement("div");
-        infoPanel.style.cssText = `
+  // 显示信息面板
+  function showInfoPanel(title, content) {
+    // 创建自定义的信息面板
+    const infoPanel = document.createElement("div");
+    infoPanel.style.cssText = `
       position: fixed;
       top: 50%;
       left: 50%;
@@ -251,19 +263,19 @@
       backdrop-filter: blur(10px);
     `;
 
-        infoPanel.innerHTML = `
+    infoPanel.innerHTML = `
       <h3 style="margin: 0 0 10px 0;">${title}</h3>
       <p style="margin: 0;">${content}</p>
       <button onclick="this.parentElement.remove()" style="margin-top: 10px; padding: 5px 15px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">关闭</button>
     `;
 
-        document.body.appendChild(infoPanel);
+    document.body.appendChild(infoPanel);
 
-        // 3秒后自动关闭
-        setTimeout(() => {
-          if (infoPanel.parentNode) {
-            infoPanel.remove();
-          }
-        }, 5000);
+    // 3秒后自动关闭
+    setTimeout(() => {
+      if (infoPanel.parentNode) {
+        infoPanel.remove();
       }
-    </script>
+    }, 5000);
+  }
+</script>
