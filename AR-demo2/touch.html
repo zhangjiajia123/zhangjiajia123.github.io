@@ -10,7 +10,7 @@
   AFRAME.registerComponent("click-handler", {
     init: function () {
       console.log(`output->this.el`,this.el)
-      this.el.addEventListener("click", (event) => {
+      this.el.object3D.el.addEventListener("click", (event) => {
         alert("点击了模型");
       });
     },
