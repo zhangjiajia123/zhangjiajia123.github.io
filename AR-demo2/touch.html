@@ -55,19 +55,16 @@
 
     console.log("找到模型实体:", modelEntity);
 
-    // 先移除可能存在的旧事件监听器
-    modelEntity.removeEventListener("click", handleModelClick);
-
     // 添加新的点击事件监听器
     modelEntity.addEventListener("click", handleModelClick);
 
-    // 添加触摸事件监听
-    modelEntity.addEventListener("touchstart", handleTouchStart);
-    modelEntity.addEventListener("touchend", handleTouchEnd);
+    // // 添加触摸事件监听
+    // modelEntity.addEventListener("touchstart", handleTouchStart);
+    // modelEntity.addEventListener("touchend", handleTouchEnd);
 
-    // 添加鼠标事件监听（用于非触摸设备）
-    modelEntity.addEventListener("mousedown", handleTouchStart);
-    modelEntity.addEventListener("mouseup", handleTouchEnd);
+    // // 添加鼠标事件监听（用于非触摸设备）
+    // modelEntity.addEventListener("mousedown", handleTouchStart);
+    // modelEntity.addEventListener("mouseup", handleTouchEnd);
 
     console.log("触摸交互已初始化");
   }
