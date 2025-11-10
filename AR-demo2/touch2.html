@@ -246,6 +246,8 @@
     vr-mode-ui="enabled: false"
     gesture-detector
     id="scene"
+    cursor="rayOrigin: mouse" 
+    raycaster="objects: .clickable"
   >
     <a-assets>
       <a-asset-item
@@ -270,12 +272,12 @@
         rotation="-90 0 0"
         class="clickable"
         gesture-handler
-        click-handler
+        onclick="handleModelClick"
       >
       </a-entity>
     </a-marker>
-    <a-entity camera>
-      <a-cursor raycaster="objects: [cursor-listener]"></a-cursor>
-    </a-entity>
+    <a-scene camera cursor="rayOrigin: mouse" raycaster="objects: .clickable">
+      <a-cursor></a-cursor>
+    </a-scene>
   </a-scene>
 </body>
