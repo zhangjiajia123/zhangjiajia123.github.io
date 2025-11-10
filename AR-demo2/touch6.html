@@ -2,44 +2,45 @@
 <script src="./js/aframe-ar-nft.js"></script>
 <script src="./js/gestures.js"></script>
 <script>
-  // 精确控制点击区域的方案
-  // AFRAME.registerComponent("cursor-listener", {
-  //   init: function () {
-  //     this.el.addEventListener("click", (evt) => {
-  //       console.log(`output->this.el`,this.el)
-  //       console.log("I was clicked!");
-  //       this.el.setAttribute("material", { color: "blue" });
-  //       var element = document.createElement("a-entity");
-  //       element.setAttribute("geometry", { primitive: "sphere", radius: "1" });
-
-  //       element.setAttribute("position", this.el.object3D.position);
-  //       const randomYRotation = Math.random() * 360;
-  //       element.setAttribute("rotation", `0 ${randomYRotation} 0`);
-  //       element.setAttribute("visible", "true");
-  //       element.setAttribute("shadow", { receive: false });
-  //       this.el.sceneEl.appendChild(element);
-  //       const marker = document.querySelector("a-marker")
-  //       marker.appendChild(element);
-  //       setTimeout(() => {
-  //         showInfoPanel(
-  //           "吸烟男孩模型",
-  //           "这是一个展示吸烟危害的AR教育模型。点击模型可以触发交互效果。"
-  //         );
-  //       }, 500);
-  //     });
-  //   },
-  // });
   AFRAME.registerComponent("cursor-listener", {
     init: function () {
       this.el.addEventListener("click", (evt) => {
         console.log("我被点击了！", this.el);
-        // 添加到当前 marker 下（推荐，与原模型在同一坐标系）
-        const marker = document.querySelector("a-marker");
-        if (marker) {
-          createHeartParticles(this.el, marker);
-        } else {
-          console.error("未找到 a-marker");
-        }
+
+        // 创建一个新的球体 entity
+        // var sphere = document.createElement("a-entity");
+
+        // // 设置几何体：小球
+        // sphere.setAttribute("geometry", {
+        //   primitive: "sphere",
+        //   radius: 0.05, // 更小的球，适合AR场景
+        // });
+
+        // // 设置材质：红色，确保可见
+        // sphere.setAttribute("material", {
+        //   color: "red",
+        // });
+
+        // // 设置位置：在当前被点击的模型上方偏移一点，避免重叠
+        // const pos = this.el.object3D.position.clone();
+        // pos.y += 0.1; // 往上偏移 10cm
+        // sphere.setAttribute("position", pos);
+
+        // // 设置随机旋转（可选）
+        // const randomYRotation = Math.random() * 360;
+        // sphere.setAttribute("rotation", `0 ${randomYRotation} 0`);
+
+        // // 确保可见
+        // sphere.setAttribute("visible", "true");
+
+        // // 添加到当前 marker 下（推荐，与原模型在同一坐标系）
+        // const marker = document.querySelector("a-marker");
+        // if (marker) {
+        //   marker.appendChild(sphere);
+        //   console.log("小球已添加到 marker 下");
+        // } else {
+        //   console.error("未找到 a-marker");
+        // }
 
         // 显示信息面板（你的原有逻辑）
         setTimeout(() => {
@@ -51,61 +52,6 @@
       });
     },
   });
-  // 创建爱心粒子效果
-  function createHeartParticles(el, scene) {
-    const modelPosition = el.object3D.position.clone();
-
-    for (let i = 0; i < 5; i++) {
-      const heart = document.createElement("a-entity");
-      heart.setAttribute(
-        "geometry",
-        "primitive: plane; width: 0.1; height: 0.1"
-      );
-      heart.setAttribute(
-        "material",
-        "src: #heart-texture; transparent: true; opacity: 1"
-      );
-
-      // 从模型位置开始
-      heart.setAttribute("position", {
-        x: modelPosition.x + (Math.random() - 0.5) * 0.2,
-        y: modelPosition.y + 0.3,
-        z: modelPosition.z + (Math.random() - 0.5) * 0.2,
-      });
-
-      // 随机动画参数
-      const angle = Math.random() * Math.PI * 2;
-      const distance = 0.5 + Math.random() * 0.5;
-      const targetX = modelPosition.x + Math.cos(angle) * distance;
-      const targetY = modelPosition.y + 1 + Math.random();
-      const targetZ = modelPosition.z + Math.sin(angle) * distance;
-
-      heart.setAttribute("animation", {
-        property: "position",
-        to: `${targetX} ${targetY} ${targetZ}`,
-        dur: 1500,
-        easing: "easeOutQuad",
-      });
-
-      heart.setAttribute("animation__opacity", {
-        property: "material.opacity",
-        from: 1,
-        to: 0,
-        dur: 1500,
-        easing: "easeOutQuad",
-      });
-
-      scene.appendChild(heart);
-
-      // 动画完成后移除爱心
-      setTimeout(() => {
-        if (heart.parentNode) {
-          scene.removeChild(heart);
-        }
-      }, 1600);
-    }
-  }
-  // 显示信息面板
   function showInfoPanel(title, content) {
     // 移除已存在的信息面板
     const existingPanel = document.querySelector(".info-panel");
@@ -165,14 +111,6 @@
     cursor="rayOrigin: mouse; fuse: false;"
     raycaster="objects: .clickable-model; far: 100;"
   >
-    <!-- 添加爱心纹理 -->
-    <a-assets>
-      <img
-        id="heart-texture"
-        src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJyZWQiIGQ9Ik00NjMuMiAxMTQuNWMtMjcuOC0yNy44LTcyLjgtMjcuOC0xMDAuNiAwTDI1NiAyMTcuMkwxNDkuNCAxMTQuNWMtMjcuOC0yNy44LTcyLjgtMjcuOC0xMDAuNiAwcy0yNy44IDcyLjggMCAxMDAuNkwxNTUuOCAyNTZsLTEwNi45IDEwNi45Yy0yNy44IDI3LjgtMjcuOCA3Mi44IDAgMTAwLjYgMjcuOCAyNy44IDcyLjggMjcuOCAxMDAuNiAwTDI1NiAyOTQuN2wxMDYuNiAxMDYuOWMyNy44IDI3LjggNzIuOCAyNy44IDEwMC42IDAgMjcuOC0yNy44IDI3LjgtNzIuOCAwLTEwMC42TDM1Ni4yIDI1NmwxMDYuOS0xMDYuOWMyNy44LTI3LjggMjcuOC03Mi44IDAtMTAwLjZ6Ii8+PC9zdmc+"
-        crossorigin="anonymous"
-      />
-    </a-assets>
     <a-assets>
       <a-asset-item id="bowser" src="/AR-demo/model/smoking_boy/scene.gltf">
       </a-asset-item>
@@ -198,7 +136,6 @@
       </a-entity>
     </a-marker>
 
-    <!-- 光标组件，只与特定类名的实体交互 -->
     <a-entity camera>
       <a-cursor
         raycaster="objects: .clickable-model; far: 100;"
