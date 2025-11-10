@@ -1,0 +1,127 @@
+<script src="./js/aframe-master.min.js"></script>
+<script src="./js/aframe-ar-nft.js"></script>
+<script src="./js/gestures.js"></script>
+<script>
+  // 更完整的点击处理方案
+  AFRAME.registerComponent("clickable-behavior", {
+    init: function () {
+      const el = this.el;
+
+      // 鼠标悬停效果
+      el.addEventListener("mouseenter", function () {
+        el.setAttribute("animation", {
+          property: "scale",
+          to: "0.31 0.31 0.31",
+          dur: 200,
+        });
+      });
+
+      // 鼠标离开效果
+      el.addEventListener("mouseleave", function () {
+        el.setAttribute("animation", {
+          property: "scale",
+          to: "0.3 0.3 0.3",
+          dur: 200,
+        });
+      });
+
+      // 点击效果
+      el.addEventListener("click", function (evt) {
+        evt.stopPropagation();
+
+        // 点击动画
+        el.setAttribute("animation", {
+          property: "scale",
+          from: "0.33 0.33 0.33",
+          to: "0.3 0.3 0.3",
+          dur: 300,
+          easing: "easeOutElastic",
+        });
+
+        // 触发自定义事件
+        el.emit("model-clicked");
+      });
+
+      // 监听自定义事件
+      el.addEventListener("model-clicked", function () {
+        console.log("模型被点击了！");
+        createClickEffect(el);
+      });
+    },
+  });
+
+  function createClickEffect(element) {
+    const position = element.getAttribute("position");
+    const scene = document.querySelector("a-scene");
+
+    // 创建点击特效
+    const effect = document.createElement("a-ring");
+    effect.setAttribute("position", position);
+    effect.setAttribute("color", "#4CC3D9");
+    effect.setAttribute("radius-inner", 0.1);
+    effect.setAttribute("radius-outer", 0.2);
+    effect.setAttribute("animation", {
+      property: "scale",
+      from: "1 1 1",
+      to: "3 3 3",
+      dur: 500,
+    });
+    effect.setAttribute("animation__opacity", {
+      property: "material.opacity",
+      from: 0.8,
+      to: 0,
+      dur: 500,
+    });
+
+    scene.appendChild(effect);
+
+    // 动画完成后移除特效
+    setTimeout(() => {
+      scene.removeChild(effect);
+    }, 500);
+  }
+</script>
+<!-- 部署测试环境时放开 vconsole 用于测试  -->
+<script src="https://cdn.banyou.70180.cn/assets/xcontent/vconsole/vconsole.min.js"></script>
+<script>
+  let vConsole = new window.VConsole();
+</script>
+<body style="margin: 0px; overflow: hidden">
+  <a-scene
+    arjs
+    embedded
+    renderer="logarithmicDepthBuffer: true;"
+    vr-mode-ui="enabled: false"
+    gesture-detector
+    cursor="rayOrigin: mouse"
+    raycaster="objects: .clickable"
+  >
+    <a-assets>
+      <a-asset-item id="bowser" src="/AR-demo/model/smoking_boy/scene.gltf">
+      </a-asset-item>
+    </a-assets>
+
+    <a-marker
+      type="pattern"
+      preset="custom"
+      url="/AR-demo/pattern/marker.patt"
+      emitevents="true"
+      cursor="fuse: false; rayOrigin: mouse;"
+      id="markerA"
+    >
+      <a-entity
+        id="model-entity"
+        gltf-model="#bowser"
+        position="0 0 0"
+        scale="0.3 0.3 0.3"
+        rotation="-90 0 0"
+        class="clickable"
+        gesture-handler
+        clickable-behavior
+      >
+      </a-entity>
+    </a-marker>
+    <a-cursor></a-cursor>
+    <a-entity camera></a-entity>
+  </a-scene>
+</body>
