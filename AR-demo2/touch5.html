@@ -1,0 +1,199 @@
+<script src="./js/aframe-master.min.js"></script>
+<script src="./js/aframe-ar-nft.js"></script>
+<script src="./js/gestures.js"></script>
+<script>
+  // 专门处理模型点击的组件
+  AFRAME.registerComponent('model-click-handler', {
+    init: function () {
+      // 只在这个特定的模型实体上监听点击
+      this.el.addEventListener('click', (evt) => {
+        console.log('模型被点击了', this.el);
+        evt.stopPropagation(); // 阻止事件冒泡
+        alert('点击了模型！');
+        createHeartParticles();
+      });
+    }
+  });
+
+  // 标记器事件管理
+  AFRAME.registerComponent("registerevents", {
+    init: function () {
+      var marker = this.el;
+
+      marker.addEventListener("markerFound", function () {
+        console.log("markerFound");
+        const modelEntity = document.getElementById("model-entity");
+        if (modelEntity) {
+          modelEntity.setAttribute('data-interactive', 'true');
+          console.log("模型进入可交互状态");
+        }
+      });
+
+      marker.addEventListener("markerLost", function () {
+        console.log("markerLost");
+        const modelEntity = document.getElementById("model-entity");
+        if (modelEntity) {
+          modelEntity.removeAttribute('data-interactive');
+          console.log("模型退出交互状态");
+        }
+      });
+    },
+  });
+
+  // 创建爱心粒子效果
+  function createHeartParticles() {
+    const scene = document.querySelector("a-scene");
+    const modelEntity = document.getElementById("model-entity");
+    if (!modelEntity) return;
+
+    const modelPosition = modelEntity.getAttribute("position");
+
+    for (let i = 0; i < 5; i++) {
+      const heart = document.createElement("a-entity");
+      heart.setAttribute(
+        "geometry",
+        "primitive: plane; width: 0.1; height: 0.1"
+      );
+      heart.setAttribute(
+        "material",
+        "color: #ff4081; transparent: true; opacity: 1"
+      );
+
+      // 从模型位置开始
+      heart.setAttribute("position", {
+        x: modelPosition.x + (Math.random() - 0.5) * 0.2,
+        y: modelPosition.y + 0.3,
+        z: modelPosition.z + (Math.random() - 0.5) * 0.2,
+      });
+
+      // 随机动画参数
+      const angle = Math.random() * Math.PI * 2;
+      const distance = 0.5 + Math.random() * 0.5;
+      const targetX = modelPosition.x + Math.cos(angle) * distance;
+      const targetY = modelPosition.y + 1 + Math.random();
+      const targetZ = modelPosition.z + Math.sin(angle) * distance;
+
+      heart.setAttribute("animation", {
+        property: "position",
+        to: `${targetX} ${targetY} ${targetZ}`,
+        dur: 1500,
+        easing: "easeOutQuad",
+      });
+
+      heart.setAttribute("animation__opacity", {
+        property: "material.opacity",
+        from: 1,
+        to: 0,
+        dur: 1500,
+        easing: "easeOutQuad",
+      });
+
+      scene.appendChild(heart);
+
+      // 动画完成后移除爱心
+      setTimeout(() => {
+        if (heart.parentNode) {
+          scene.removeChild(heart);
+        }
+      }, 1600);
+    }
+  }
+
+  // 显示信息面板
+  function showInfoPanel(title, content) {
+    // 移除已存在的信息面板
+    const existingPanel = document.querySelector('.info-panel');
+    if (existingPanel) {
+      existingPanel.remove();
+    }
+
+    // 创建自定义的信息面板
+    const infoPanel = document.createElement("div");
+    infoPanel.className = 'info-panel';
+    infoPanel.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      z-index: 10000;
+      max-width: 300px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    `;
+
+    infoPanel.innerHTML = `
+      <h3 style="margin: 0 0 10px 0; color: #ff4081;">${title}</h3>
+      <p style="margin: 0; line-height: 1.4;">${content}</p>
+      <button onclick="this.parentElement.remove()" style="margin-top: 15px; padding: 8px 20px; background: #ff4081; color: white; border: none; border-radius: 5px; cursor: pointer;">关闭</button>
+    `;
+
+    document.body.appendChild(infoPanel);
+
+    // 5秒后自动关闭
+    setTimeout(() => {
+      if (infoPanel.parentNode) {
+        infoPanel.remove();
+      }
+    }, 5000);
+  }
+</script>
+
+<!-- 部署测试环境时放开 vconsole 用于测试  -->
+<script src="https://cdn.banyou.70180.cn/assets/xcontent/vconsole/vconsole.min.js"></script>
+<script>
+  let vConsole = new window.VConsole();
+</script>
+
+<body style="margin: 0px; overflow: hidden">
+  <a-scene
+    arjs
+    embedded
+    renderer="logarithmicDepthBuffer: true;"
+    vr-mode-ui="enabled: false"
+    gesture-detector
+    cursor="rayOrigin: mouse; fuse: false;"
+    raycaster="objects: .clickable-model; far: 100;"
+  >
+    <a-assets>
+      <a-asset-item id="bowser" src="/AR-demo/model/smoking_boy/scene.gltf">
+      </a-asset-item>
+    </a-assets>
+
+    <a-marker
+      type="pattern"
+      preset="custom"
+      url="/AR-demo/pattern/marker.patt"
+      emitevents="true"
+      id="markerA"
+      registerevents
+    >
+      <a-entity
+        id="model-entity"
+        gltf-model="#bowser"
+        position="0 0 0"
+        scale="0.3 0.3 0.3"
+        rotation="-90 0 0"
+        class="clickable-model"
+        model-click-handler
+        data-raycastable
+      >
+      </a-entity>
+    </a-marker>
+    
+    <!-- 光标组件，只与特定类名的实体交互 -->
+    <a-entity camera>
+      <a-cursor 
+        raycaster="objects: .clickable-model; far: 100;"
+        fuse="false"
+        animation__click="property: scale; startEvents: click; from: 0.1 0.1 0.1; to: 1 1 1; dur: 150"
+        animation__fusing="property: scale; startEvents: fusing; from: 1 1 1; to: 0.1 0.1 0.1; dur: 1500"
+        animation__mouseleave="property: scale; startEvents: mouseleave; from: 0.1 0.1 0.1; to: 1 1 1; dur: 500"
+      ></a-cursor>
+    </a-entity>
+  </a-scene>
+</body>
