@@ -48,15 +48,15 @@
     // 从 marker 的子元素中查找模型实体
     const modelEntity = marker.querySelector("#model-entity");
 
-    if (!modelEntity) {
+    if (!modelEntity.object3D.el) {
       console.error("找不到 model-entity 元素");
       return;
     }
 
-    console.log("找到模型实体:", modelEntity);
+    console.log("找到模型实体:", modelEntity.object3D.el);
 
     // 添加新的点击事件监听器
-    modelEntity.addEventListener("click", handleModelClick);
+    modelEntity.object3D.el.addEventListener("click", handleModelClick);
 
     // // 添加触摸事件监听
     // modelEntity.addEventListener("touchstart", handleTouchStart);
