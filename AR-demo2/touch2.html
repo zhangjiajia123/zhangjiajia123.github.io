@@ -70,7 +70,7 @@
 
   // 处理模型点击事件
   function handleModelClick(event) {
-    console.log(`output->event`,event)
+    console.log(`output->event`, event);
     alert("点击了模型");
   }
 
@@ -231,12 +231,10 @@
   }
 </script>
 <!-- 部署测试环境时放开 vconsole 用于测试  -->
-<%if(CurrMember.getYuanGzryState()==3){%>
 <script src="https://cdn.banyou.70180.cn/assets/xcontent/vconsole/vconsole.min.js"></script>
 <script>
   let vConsole = new window.VConsole();
 </script>
-<%}%>
 <body style="margin: 0px; overflow: hidden">
   <a-scene
     arjs
@@ -245,32 +243,31 @@
     vr-mode-ui="enabled: false"
     gesture-detector
     id="scene"
-    cursor="rayOrigin: mouse" 
+    cursor="rayOrigin: mouse"
     raycaster="objects: .clickable"
   >
     <a-assets>
-      <a-asset-item
-        id="bowser"
-        src="/AR-demo/model/smoking_boy/scene.gltf"
-      >
+      <a-asset-item id="bowser" src="/AR-demo/model/smoking_boy/scene.gltf">
       </a-asset-item>
     </a-assets>
 
     <a-marker
-      type="pattern" preset="custom" url="/AR-demo/pattern/marker.patt"
+      type="pattern"
+      preset="custom"
+      url="/AR-demo/pattern/marker.patt"
       emitevents="true"
       cursor="fuse: false; rayOrigin: mouse;"
       id="markerA"
     >
       <a-entity
-        id="bowser-model"
+        id="model-entity"
         gltf-model="#bowser"
         position="0 0 0"
         scale="0.3 0.3 0.3"
         rotation="-90 0 0"
         class="clickable"
         gesture-handler
-        onclick="handleModelClick()"
+        onclick="handleModelClick(event)"
       >
       </a-entity>
     </a-marker>
