@@ -137,6 +137,7 @@
   function createHeartParticles() {
     const scene = document.querySelector("a-scene");
     const modelEntity = document.getElementById("model-entity");
+    console.log(`output->modelEntity`,modelEntity)
     if (!modelEntity) return;
 
     const modelPosition = modelEntity.getAttribute("position");
