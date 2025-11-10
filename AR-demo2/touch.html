@@ -276,6 +276,8 @@
         class="clickable"
       ></a-entity>
     </a-marker>
-    <a-entity camera></a-entity>
+    <a-entity camera>
+      <a-cursor raycaster="objects: [cursor-listener]"></a-cursor>
+    </a-entity>
   </a-scene>
 </body>
