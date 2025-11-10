@@ -8,24 +8,7 @@
       this.el.addEventListener('click', (evt) => {
         console.log('元素被点击了', this.el);
         alert('点击了模型！');
-        
-        // 添加点击动画效果
-        this.el.setAttribute('animation', {
-          property: 'scale',
-          to: '0.35 0.35 0.35',
-          dur: 200,
-          easing: 'easeOutElastic'
-        });
-        
-        // 恢复原始大小
-        setTimeout(() => {
-          this.el.setAttribute('animation', {
-            property: 'scale',
-            to: '0.3 0.3 0.3',
-            dur: 200,
-            easing: 'easeOutQuad'
-          });
-        }, 200);
+        createHeartParticles()
       });
     }
   });
