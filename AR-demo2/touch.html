@@ -1,6 +1,6 @@
 <script src="./js/aframe-master.min.js"></script>
 <script src="./js/aframe-ar-nft.js"></script>
-<script src="./js/gestures.js"></script>
+<!-- <script src="./js/gestures.js"></script> -->
 
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -9,9 +9,8 @@
   // 替代方案：使用 A-Frame 的 click 事件组件
   AFRAME.registerComponent("click-handler", {
     init: function () {
-      console.log(`output->this.el`,this.el)
       this.el.addEventListener("click", (event) => {
-        alert("点击了模型", event);
+        alert("点击了模型");
       });
     },
   });
@@ -49,23 +48,26 @@
     // 从 marker 的子元素中查找模型实体
     const modelEntity = marker.querySelector("#model-entity");
 
-    if (!modelEntity.object3D.el) {
+    if (!modelEntity) {
       console.error("找不到 model-entity 元素");
       return;
     }
 
-    console.log("找到模型实体:", modelEntity.object3D.el);
+    console.log("找到模型实体:", modelEntity);
+
+    // 先移除可能存在的旧事件监听器
+    modelEntity.removeEventListener("click", handleModelClick);
 
     // 添加新的点击事件监听器
-    modelEntity.object3D.el.addEventListener("click", handleModelClick);
+    modelEntity.addEventListener("click", handleModelClick);
 
-    // // 添加触摸事件监听
-    // modelEntity.addEventListener("touchstart", handleTouchStart);
-    // modelEntity.addEventListener("touchend", handleTouchEnd);
+    // 添加触摸事件监听
+    modelEntity.addEventListener("touchstart", handleTouchStart);
+    modelEntity.addEventListener("touchend", handleTouchEnd);
 
-    // // 添加鼠标事件监听（用于非触摸设备）
-    // modelEntity.addEventListener("mousedown", handleTouchStart);
-    // modelEntity.addEventListener("mouseup", handleTouchEnd);
+    // 添加鼠标事件监听（用于非触摸设备）
+    modelEntity.addEventListener("mousedown", handleTouchStart);
+    modelEntity.addEventListener("mouseup", handleTouchEnd);
 
     console.log("触摸交互已初始化");
   }
@@ -242,20 +244,14 @@
 <%}%>
 <body style="margin: 0px; overflow: hidden">
   <a-scene
-    arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
-    embedded
-    renderer="logarithmicDepthBuffer: true;"
     vr-mode-ui="enabled: false"
-    gesture-detector
-    id="scene"
+    cursor='rayOrigin: mouse'
+    raycaster='near: 0; far: 50000'
+    arjs='sourceType: webcam; videoTexture: true; debugUIEnabled: false;'
+    renderer='antialias: true; alpha: true'
   >
     <!-- 添加爱心纹理 -->
     <a-assets>
-      <a-asset-item
-        id="modelEl"
-        src="/AR-demo/model/smoking_boy/scene.gltf"
-      >
-      </a-asset-item>
       <img
         id="heart-texture"
         src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJyZWQiIGQ9Ik00NjMuMiAxMTQuNWMtMjcuOC0yNy44LTcyLjgtMjcuOC0xMDAuNiAwTDI1NiAyMTcuMkwxNDkuNCAxMTQuNWMtMjcuOC0yNy44LTcyLjgtMjcuOC0xMDAuNiAwcy0yNy44IDcyLjggMCAxMDAuNkwxNTUuOCAyNTZsLTEwNi45IDEwNi45Yy0yNy44IDI3LjgtMjcuOCA3Mi44IDAgMTAwLjYgMjcuOCAyNy44IDcyLjggMjcuOCAxMDAuNiAwTDI1NiAyOTQuN2wxMDYuNiAxMDYuOWMyNy44IDI3LjggNzIuOCAyNy44IDEwMC42IDAgMjcuOC0yNy44IDI3LjgtNzIuOCAwLTEwMC42TDM1Ni4yIDI1NmwxMDYuOS0xMDYuOWMyNy44LTI3LjggMjcuOC03Mi44IDAtMTAwLjZ6Ii8+PC9zdmc+"
@@ -270,9 +266,9 @@
       url="/AR-demo/pattern/marker.patt"
     >
       <a-entity
-        id="model-entity"
         click-handler
-        gltf-model="#modelEl"
+        id="model-entity"
+        gltf-model="/AR-demo/model/smoking_boy/scene.gltf"
         position="0 0 0"
         scale="0.3 0.3 0.3"
         rotation="-90 0 0"
