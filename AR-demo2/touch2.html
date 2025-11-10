@@ -259,7 +259,6 @@
 
     <a-marker
       type="pattern" preset="custom" url="/AR-demo/pattern/marker.patt"
-      raycaster="objects: .clickable"
       emitevents="true"
       cursor="fuse: false; rayOrigin: mouse;"
       id="markerA"
@@ -272,7 +271,7 @@
         rotation="-90 0 0"
         class="clickable"
         gesture-handler
-        onclick="handleModelClick"
+        onclick="handleModelClick()"
       >
       </a-entity>
     </a-marker>
