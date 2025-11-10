@@ -18,6 +18,12 @@
         el.setAttribute("visible", "true");
         el.setAttribute("shadow", { receive: false });
         this.el.sceneEl.appendChild(el);
+        setTimeout(() => {
+          showInfoPanel(
+            "吸烟男孩模型",
+            "这是一个展示吸烟危害的AR教育模型。点击模型可以触发交互效果。"
+          );
+        }, 500);
       });
     },
   });
