@@ -20,14 +20,7 @@
 
       marker.addEventListener("markerFound", function () {
         console.log("markerFound");
-        // initTouchInteraction(marker);
-        AFRAME.registerComponent("click-handler", {
-          init: function () {
-            this.el.addEventListener("click", (event) => {
-              alert("点击了模型");
-            });
-          },
-        });
+        initTouchInteraction(marker);
       });
 
       marker.addEventListener("markerLost", function () {
@@ -258,7 +251,7 @@
     <!-- 添加爱心纹理 -->
     <a-assets>
       <a-asset-item
-        id="model-entity"
+        id="modelEl"
         src="/AR-demo/model/smoking_boy/scene.gltf"
       >
       </a-asset-item>
@@ -276,8 +269,9 @@
       url="/AR-demo/pattern/marker.patt"
     >
       <a-entity
+        id="model-entity"
         click-handler
-        gltf-model="#model-entity"
+        gltf-model="#modelEl"
         position="0 0 0"
         scale="0.3 0.3 0.3"
         rotation="-90 0 0"
