@@ -3,23 +3,73 @@
 <script src="./js/gestures.js"></script>
 <script>
   // 精确控制点击区域的方案
+  // AFRAME.registerComponent("cursor-listener", {
+  //   init: function () {
+  //     this.el.addEventListener("click", (evt) => {
+  //       console.log(`output->this.el`,this.el)
+  //       console.log("I was clicked!");
+  //       this.el.setAttribute("material", { color: "blue" });
+  //       var element = document.createElement("a-entity");
+  //       element.setAttribute("geometry", { primitive: "sphere", radius: "1" });
+
+  //       element.setAttribute("position", this.el.object3D.position);
+  //       const randomYRotation = Math.random() * 360;
+  //       element.setAttribute("rotation", `0 ${randomYRotation} 0`);
+  //       element.setAttribute("visible", "true");
+  //       element.setAttribute("shadow", { receive: false });
+  //       this.el.sceneEl.appendChild(element);
+  //       const marker = document.querySelector("a-marker")
+  //       marker.appendChild(element);
+  //       setTimeout(() => {
+  //         showInfoPanel(
+  //           "吸烟男孩模型",
+  //           "这是一个展示吸烟危害的AR教育模型。点击模型可以触发交互效果。"
+  //         );
+  //       }, 500);
+  //     });
+  //   },
+  // });
   AFRAME.registerComponent("cursor-listener", {
     init: function () {
       this.el.addEventListener("click", (evt) => {
-        console.log(`output->this.el`,this.el)
-        console.log("I was clicked!");
-        this.el.setAttribute("material", { color: "blue" });
-        var element = document.createElement("a-entity");
-        element.setAttribute("geometry", { primitive: "sphere", radius: "1" });
+        console.log("我被点击了！", this.el);
 
-        element.setAttribute("position", this.el.object3D.position);
+        // 创建一个新的球体 entity
+        var sphere = document.createElement("a-entity");
+
+        // 设置几何体：小球
+        sphere.setAttribute("geometry", {
+          primitive: "sphere",
+          radius: 0.05, // 更小的球，适合AR场景
+        });
+
+        // 设置材质：红色，确保可见
+        sphere.setAttribute("material", {
+          color: "red",
+        });
+
+        // 设置位置：在当前被点击的模型上方偏移一点，避免重叠
+        const pos = this.el.object3D.position.clone();
+        pos.y += 0.1; // 往上偏移 10cm
+        sphere.setAttribute("position", pos);
+
+        // 设置随机旋转（可选）
         const randomYRotation = Math.random() * 360;
-        element.setAttribute("rotation", `0 ${randomYRotation} 0`);
-        element.setAttribute("visible", "true");
-        element.setAttribute("shadow", { receive: false });
-        this.el.sceneEl.appendChild(element);
-        const marker = document.querySelector("a-marker")
-        marker.appendChild(element);
+        sphere.setAttribute("rotation", `0 ${randomYRotation} 0`);
+
+        // 确保可见
+        sphere.setAttribute("visible", "true");
+
+        // 添加到当前 marker 下（推荐，与原模型在同一坐标系）
+        const marker = document.querySelector("a-marker");
+        if (marker) {
+          marker.appendChild(sphere);
+          console.log("小球已添加到 marker 下");
+        } else {
+          console.error("未找到 a-marker");
+        }
+
+        // 显示信息面板（你的原有逻辑）
         setTimeout(() => {
           showInfoPanel(
             "吸烟男孩模型",
@@ -29,6 +79,7 @@
       });
     },
   });
+
   // 显示信息面板
   function showInfoPanel(title, content) {
     // 移除已存在的信息面板
