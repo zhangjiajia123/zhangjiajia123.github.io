@@ -1,0 +1,120 @@
+<script src="./js/aframe-master.min.js"></script>
+<script src="./js/aframe-ar-nft.js"></script>
+<script src="./js/gestures.js"></script>
+<script>
+  // 精确控制点击区域的方案
+  AFRAME.registerComponent("cursor-listener", {
+    init: function () {
+      var currentEl = this.el;
+      currentEl.addEventListener("click", function (evt) {
+        console.log("I was clicked!");
+        currentEl.setAttribute("material", { color: "blue" });
+        var el = document.createElement("a-entity");
+        el.setAttribute("geometry", { primitive: "sphere", radius: "1" });
+
+        el.setAttribute("position", this.el.object3D.position);
+        const randomYRotation = Math.random() * 360;
+        el.setAttribute("rotation", `0 ${randomYRotation} 0`);
+        el.setAttribute("visible", "true");
+        el.setAttribute("shadow", { receive: false });
+        this.el.sceneEl.appendChild(el);
+      });
+    },
+  });
+  // 显示信息面板
+  function showInfoPanel(title, content) {
+    // 移除已存在的信息面板
+    const existingPanel = document.querySelector(".info-panel");
+    if (existingPanel) {
+      existingPanel.remove();
+    }
+
+    // 创建自定义的信息面板
+    const infoPanel = document.createElement("div");
+    infoPanel.className = "info-panel";
+    infoPanel.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      z-index: 10000;
+      max-width: 300px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    `;
+
+    infoPanel.innerHTML = `
+      <h3 style="margin: 0 0 10px 0; color: #ff4081;">${title}</h3>
+      <p style="margin: 0; line-height: 1.4;">${content}</p>
+      <button onclick="this.parentElement.remove()" style="margin-top: 15px; padding: 8px 20px; background: #ff4081; color: white; border: none; border-radius: 5px; cursor: pointer;">关闭</button>
+    `;
+
+    document.body.appendChild(infoPanel);
+
+    // 5秒后自动关闭
+    setTimeout(() => {
+      if (infoPanel.parentNode) {
+        infoPanel.remove();
+      }
+    }, 5000);
+  }
+</script>
+
+<!-- 部署测试环境时放开 vconsole 用于测试  -->
+<script src="https://cdn.banyou.70180.cn/assets/xcontent/vconsole/vconsole.min.js"></script>
+<script>
+  let vConsole = new window.VConsole();
+</script>
+
+<body style="margin: 0px; overflow: hidden">
+  <a-scene
+    arjs
+    embedded
+    renderer="logarithmicDepthBuffer: true;"
+    vr-mode-ui="enabled: false"
+    gesture-detector
+    cursor="rayOrigin: mouse; fuse: false;"
+    raycaster="objects: .clickable-model; far: 100;"
+  >
+    <a-assets>
+      <a-asset-item id="bowser" src="/AR-demo/model/smoking_boy/scene.gltf">
+      </a-asset-item>
+    </a-assets>
+
+    <a-marker
+      type="pattern"
+      preset="custom"
+      url="/AR-demo/pattern/marker.patt"
+      emitevents="true"
+      id="markerA"
+    >
+      <a-entity
+        id="model-entity"
+        gltf-model="#bowser"
+        position="0 0 0"
+        scale="0.3 0.3 0.3"
+        rotation="-90 0 0"
+        class="clickable-model"
+        model-click-handler
+        cursor-listener
+      >
+      </a-entity>
+    </a-marker>
+
+    <!-- 光标组件，只与特定类名的实体交互 -->
+    <a-entity camera>
+      <a-cursor
+        raycaster="objects: .clickable-model; far: 100;"
+        fuse="false"
+        animation__click="property: scale; startEvents: click; from: 0.1 0.1 0.1; to: 1 1 1; dur: 150"
+        animation__fusing="property: scale; startEvents: fusing; from: 1 1 1; to: 0.1 0.1 0.1; dur: 1500"
+        animation__mouseleave="property: scale; startEvents: mouseleave; from: 0.1 0.1 0.1; to: 1 1 1; dur: 500"
+      ></a-cursor>
+    </a-entity>
+  </a-scene>
+</body>
