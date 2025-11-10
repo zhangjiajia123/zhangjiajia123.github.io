@@ -20,7 +20,14 @@
 
       marker.addEventListener("markerFound", function () {
         console.log("markerFound");
-        initTouchInteraction(marker);
+        // initTouchInteraction(marker);
+        AFRAME.registerComponent("click-handler", {
+          init: function () {
+            this.el.addEventListener("click", (event) => {
+              alert("点击了模型");
+            });
+          },
+        });
       });
 
       marker.addEventListener("markerLost", function () {
