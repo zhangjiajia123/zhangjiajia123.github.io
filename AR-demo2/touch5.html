@@ -2,17 +2,49 @@
 <script src="./js/aframe-ar-nft.js"></script>
 <script src="./js/gestures.js"></script>
 <script>
-  // 专门处理模型点击的组件
-  AFRAME.registerComponent('model-click-handler', {
+  // 精确控制点击区域的方案
+  AFRAME.registerComponent("model-click-handler", {
     init: function () {
-      // 只在这个特定的模型实体上监听点击
-      this.el.addEventListener('click', (evt) => {
-        console.log('模型被点击了', this.el);
-        evt.stopPropagation(); // 阻止事件冒泡
-        alert('点击了模型！');
-        createHeartParticles();
+      const el = this.el;
+
+      // 为模型添加包围盒，确保点击检测准确
+      el.addEventListener("model-loaded", () => {
+        console.log("模型加载完成，设置点击区域");
+
+        // 添加一个透明的碰撞盒来确保点击检测
+        const boundingBox = document.createElement("a-box");
+        boundingBox.setAttribute("position", "0 0.5 0");
+        boundingBox.setAttribute("scale", "1 1 1");
+        boundingBox.setAttribute("visible", "false");
+        boundingBox.setAttribute("class", "clickable-model");
+        boundingBox.setAttribute("data-clickable", "true");
+
+        el.appendChild(boundingBox);
       });
-    }
+
+      // 点击事件监听
+      el.addEventListener("click", (evt) => {
+        console.log("模型被精确点击");
+        evt.stopPropagation();
+
+        // 检查模型是否处于可交互状态
+        if (!el.hasAttribute("data-interactive")) {
+          console.log("模型当前不可交互");
+          return;
+        }
+
+        alert("成功点击模型！");
+        createHeartParticles();
+
+        // 显示信息
+        setTimeout(() => {
+          showInfoPanel(
+            "吸烟男孩模型",
+            "这是一个展示吸烟危害的AR教育模型。点击模型可以触发交互效果。"
+          );
+        }, 500);
+      });
+    },
   });
 
   // 标记器事件管理
@@ -24,7 +56,7 @@
         console.log("markerFound");
         const modelEntity = document.getElementById("model-entity");
         if (modelEntity) {
-          modelEntity.setAttribute('data-interactive', 'true');
+          modelEntity.setAttribute("data-interactive", "true");
           console.log("模型进入可交互状态");
         }
       });
@@ -33,7 +65,7 @@
         console.log("markerLost");
         const modelEntity = document.getElementById("model-entity");
         if (modelEntity) {
-          modelEntity.removeAttribute('data-interactive');
+          modelEntity.removeAttribute("data-interactive");
           console.log("模型退出交互状态");
         }
       });
@@ -102,14 +134,14 @@
   // 显示信息面板
   function showInfoPanel(title, content) {
     // 移除已存在的信息面板
-    const existingPanel = document.querySelector('.info-panel');
+    const existingPanel = document.querySelector(".info-panel");
     if (existingPanel) {
       existingPanel.remove();
     }
 
     // 创建自定义的信息面板
     const infoPanel = document.createElement("div");
-    infoPanel.className = 'info-panel';
+    infoPanel.className = "info-panel";
     infoPanel.style.cssText = `
       position: fixed;
       top: 50%;
@@ -184,10 +216,10 @@
       >
       </a-entity>
     </a-marker>
-    
+
     <!-- 光标组件，只与特定类名的实体交互 -->
     <a-entity camera>
-      <a-cursor 
+      <a-cursor
         raycaster="objects: .clickable-model; far: 100;"
         fuse="false"
         animation__click="property: scale; startEvents: click; from: 0.1 0.1 0.1; to: 1 1 1; dur: 150"
