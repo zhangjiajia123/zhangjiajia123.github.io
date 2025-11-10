@@ -7,29 +7,28 @@
 </head>
 <script>
   // 替代方案：使用 A-Frame 的 click 事件组件
-  AFRAME.registerComponent("click-handler", {
-    init: function () {
-      this.el.addEventListener("click", (event) => {
-        console.log("模型被点击了");
-        alert("点击了模型");
-      });
-    },
-  });
-  // AFRAME.registerComponent("registerevents", {
+  // AFRAME.registerComponent("click-handler", {
   //   init: function () {
-  //     var marker = this.el;
-
-  //     marker.addEventListener("markerFound", function () {
-  //       console.log("markerFound");
-  //       initTouchInteraction(marker);
-  //     });
-
-  //     marker.addEventListener("markerLost", function () {
-  //       console.log("markerLost");
-  //       removeTouchInteraction();
+  //     this.el.addEventListener("click", (event) => {
+  //       alert("点击了模型");
   //     });
   //   },
   // });
+  AFRAME.registerComponent("registerevents", {
+    init: function () {
+      var marker = this.el;
+
+      marker.addEventListener("markerFound", function () {
+        console.log("markerFound");
+        initTouchInteraction(marker);
+      });
+
+      marker.addEventListener("markerLost", function () {
+        console.log("markerLost");
+        removeTouchInteraction();
+      });
+    },
+  });
 
   // 移除触摸交互
   function removeTouchInteraction() {
