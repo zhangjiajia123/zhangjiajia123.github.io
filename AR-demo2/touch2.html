@@ -3,12 +3,31 @@
 <script src="./js/gestures.js"></script>
 <script>
   // 替代方案：使用 A-Frame 的 click 事件组件
-  AFRAME.registerComponent("click-handler", {
+  AFRAME.registerComponent('clickable-handler', {
     init: function () {
-      this.el.addEventListener("click", (event) => {
-        alert("点击了模型");
+      this.el.addEventListener('click', (evt) => {
+        console.log('元素被点击了', this.el);
+        alert('点击了模型！');
+        
+        // 添加点击动画效果
+        this.el.setAttribute('animation', {
+          property: 'scale',
+          to: '0.35 0.35 0.35',
+          dur: 200,
+          easing: 'easeOutElastic'
+        });
+        
+        // 恢复原始大小
+        setTimeout(() => {
+          this.el.setAttribute('animation', {
+            property: 'scale',
+            to: '0.3 0.3 0.3',
+            dur: 200,
+            easing: 'easeOutQuad'
+          });
+        }, 200);
       });
-    },
+    }
   });
   // AFRAME.registerComponent("registerevents", {
   //   init: function () {
@@ -242,9 +261,6 @@
     renderer="logarithmicDepthBuffer: true;"
     vr-mode-ui="enabled: false"
     gesture-detector
-    id="scene"
-    cursor="rayOrigin: mouse"
-    raycaster="objects: .clickable"
   >
     <a-assets>
       <a-asset-item id="bowser" src="/AR-demo/model/smoking_boy/scene.gltf">
@@ -267,7 +283,7 @@
         rotation="-90 0 0"
         class="clickable"
         gesture-handler
-        onclick="handleModelClick(event)"
+        clickable-handler
       >
       </a-entity>
     </a-marker>
