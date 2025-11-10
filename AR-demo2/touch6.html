@@ -6,7 +6,7 @@
   AFRAME.registerComponent("cursor-listener", {
     init: function () {
       console.log(`output->this.el`,this.el)
-      this.el.addEventListener("click", function (evt) {
+      this.el.addEventListener("click", (evt) => {
         console.log("I was clicked!");
         this.el.setAttribute("material", { color: "blue" });
         var element = document.createElement("a-entity");
