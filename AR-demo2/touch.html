@@ -250,6 +250,11 @@
   >
     <!-- 添加爱心纹理 -->
     <a-assets>
+      <a-asset-item
+        id="model-entity"
+        src="/AR-demo/model/smoking_boy/scene.gltf"
+      >
+      </a-asset-item>
       <img
         id="heart-texture"
         src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJyZWQiIGQ9Ik00NjMuMiAxMTQuNWMtMjcuOC0yNy44LTcyLjgtMjcuOC0xMDAuNiAwTDI1NiAyMTcuMkwxNDkuNCAxMTQuNWMtMjcuOC0yNy44LTcyLjgtMjcuOC0xMDAuNiAwcy0yNy44IDcyLjggMCAxMDAuNkwxNTUuOCAyNTZsLTEwNi45IDEwNi45Yy0yNy44IDI3LjgtMjcuOCA3Mi44IDAgMTAwLjYgMjcuOCAyNy44IDcyLjggMjcuOCAxMDAuNiAwTDI1NiAyOTQuN2wxMDYuNiAxMDYuOWMyNy44IDI3LjggNzIuOCAyNy44IDEwMC42IDAgMjcuOC0yNy44IDI3LjgtNzIuOCAwLTEwMC42TDM1Ni4yIDI1NmwxMDYuOS0xMDYuOWMyNy44LTI3LjggMjcuOC03Mi44IDAtMTAwLjZ6Ii8+PC9zdmc+"
@@ -265,8 +270,7 @@
     >
       <a-entity
         click-handler
-        id="model-entity"
-        gltf-model="/AR-demo/model/smoking_boy/scene.gltf"
+        gltf-model="#model-entity"
         position="0 0 0"
         scale="0.3 0.3 0.3"
         rotation="-90 0 0"
