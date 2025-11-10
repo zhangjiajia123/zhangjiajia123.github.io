@@ -244,11 +244,12 @@
 <%}%>
 <body style="margin: 0px; overflow: hidden">
   <a-scene
+    arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
+    embedded
+    renderer="logarithmicDepthBuffer: true;"
     vr-mode-ui="enabled: false"
-    cursor='rayOrigin: mouse'
-    raycaster='near: 0; far: 50000'
-    arjs='sourceType: webcam; videoTexture: true; debugUIEnabled: false;'
-    renderer='antialias: true; alpha: true'
+    gesture-detector
+    id="scene"
   >
     <!-- 添加爱心纹理 -->
     <a-assets>
