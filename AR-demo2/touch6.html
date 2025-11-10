@@ -36,7 +36,7 @@
         // 添加到当前 marker 下（推荐，与原模型在同一坐标系）
         const marker = document.querySelector("a-marker");
         if (marker) {
-          createHeartParticles(this.el, marker)
+          createHeartParticles(this.el, marker);
         } else {
           console.error("未找到 a-marker");
         }
@@ -165,6 +165,14 @@
     cursor="rayOrigin: mouse; fuse: false;"
     raycaster="objects: .clickable-model; far: 100;"
   >
+    <!-- 添加爱心纹理 -->
+    <a-assets>
+      <img
+        id="heart-texture"
+        src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSJyZWQiIGQ9Ik00NjMuMiAxMTQuNWMtMjcuOC0yNy44LTcyLjgtMjcuOC0xMDAuNiAwTDI1NiAyMTcuMkwxNDkuNCAxMTQuNWMtMjcuOC0yNy44LTcyLjgtMjcuOC0xMDAuNiAwcy0yNy44IDcyLjggMCAxMDAuNkwxNTUuOCAyNTZsLTEwNi45IDEwNi45Yy0yNy44IDI3LjgtMjcuOCA3Mi44IDAgMTAwLjYgMjcuOCAyNy44IDcyLjggMjcuOCAxMDAuNiAwTDI1NiAyOTQuN2wxMDYuNiAxMDYuOWMyNy44IDI3LjggNzIuOCAyNy44IDEwMC42IDAgMjcuOC0yNy44IDI3LjgtNzIuOCAwLTEwMC42TDM1Ni4yIDI1NmwxMDYuOS0xMDYuOWMyNy44LTI3LjggMjcuOC03Mi44IDAtMTAwLjZ6Ii8+PC9zdmc+"
+        crossorigin="anonymous"
+      />
+    </a-assets>
     <a-assets>
       <a-asset-item id="bowser" src="/AR-demo/model/smoking_boy/scene.gltf">
       </a-asset-item>
