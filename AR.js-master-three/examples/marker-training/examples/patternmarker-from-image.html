@@ -105,7 +105,7 @@
 
     arToolkitSource.init(function onReady() {
       // handle resize of renderer
-      arToolkitSource.onResize([
+      arToolkitSource.onResizeElement([
         renderer.domElement,
         arToolkitContext.arController.canvas,
       ]);
@@ -114,7 +114,7 @@
     // handle resize
     window.addEventListener("resize", function () {
       // handle arToolkitSource resize
-      arToolkitSource.onResize([
+      arToolkitSource.onResizeElement([
         renderer.domElement,
         arToolkitContext.arController.canvas,
       ]);
