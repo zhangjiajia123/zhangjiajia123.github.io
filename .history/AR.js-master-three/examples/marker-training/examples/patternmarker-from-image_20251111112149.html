@@ -217,7 +217,7 @@
 		scene.add(markerRoot);
 
 		// 加载图片并转换为标记图案
-		var imageURL = "inner-images/inner-hiro.png";
+		var imageURL = "../inner-images/inner-hiro.png";
 		THREEx.ArPatternFile.encodeImageURL(
 			imageURL,
 			function onComplete(patternFileString) {
@@ -245,7 +245,6 @@
 					console.log("✅ 标记识别成功");
 					document.getElementById("info").style.display = "none";
 					document.getElementById("status").style.display = "block";
-					markerRoot.visible = true;
 				});
 
 				// 添加标记丢失事件监听
