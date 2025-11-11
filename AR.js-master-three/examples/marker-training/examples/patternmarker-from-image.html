@@ -32,7 +32,6 @@
       text-align: center;
       z-index: 1;
     "
-    ;
   >
     <a href="https://github.com/jeromeetienne/AR.js/" target="_blank">AR.js</a>
     - developement playground
@@ -42,11 +41,26 @@
       >@jerome_etienne</a
     >
   </div>
-  <!-- 部署测试环境时放开 vconsole 用于测试  -->
-  <script src="https://cdn.banyou.70180.cn/assets/xcontent/vconsole/vconsole.min.js"></script>
-  <script>
-    let vConsole = new window.VConsole();
-  </script>
+
+  <!-- 提示信息 -->
+  <div
+    id="info"
+    style="
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      z-index: 100;
+    "
+  >
+    请将摄像头对准标记物
+  </div>
+
   <script>
     //////////////////////////////////////////////////////////////////////////////////
     //		Init
@@ -54,11 +68,9 @@
 
     // init renderer
     var renderer = new THREE.WebGLRenderer({
-      // antialias	: true,
       alpha: true,
     });
     renderer.setClearColor(new THREE.Color("lightgrey"), 0);
-    // renderer.setPixelRatio( 2 );
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.domElement.style.position = "absolute";
     renderer.domElement.style.top = "0px";
@@ -93,14 +105,6 @@
     var arToolkitSource = new THREEx.ArToolkitSource({
       // to read from the webcam
       sourceType: "webcam",
-
-      // // to read from an image
-      // sourceType : 'image',
-      // sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/images/img.jpg',
-
-      // to read from a video
-      // sourceType : 'video',
-      // sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/videos/headtracking.mp4',
     });
 
     arToolkitSource.init(function onReady() {
@@ -140,7 +144,6 @@
     // update artoolkit on every frame
     onRenderFcts.push(function () {
       if (arToolkitSource.ready === false) return;
-
       arToolkitContext.update(arToolkitSource.domElement);
     });
 
@@ -149,6 +152,7 @@
     ////////////////////////////////////////////////////////////////////////////////
 
     var markerRoot = new THREE.Group();
+    markerRoot.visible = false;  // 初始隐藏标记根节点
     scene.add(markerRoot);
 
     // load image and convert it to a marker
@@ -158,66 +162,86 @@
       function onComplete(patternFileString) {
         var patternURL = "data:text/plain;base64," + btoa(patternFileString);
         console.log(`output->patternURL`, patternURL);
+        
         // create THREEx.ArMarkerControls
         var markerControls = new THREEx.ArMarkerControls(
           arToolkitContext,
           markerRoot,
           {
             type: "pattern",
-            patternUrl: "../pattern-files/pattern-hiro.patt",
             patternUrl: patternURL,
+            size: 1.0
           }
         );
+        
+        // 添加标记事件监听
+        markerControls.addEventListener('markerFound', function() {
+          console.log('标记物识别成功');
+          document.getElementById('info').style.display = 'none';
+        });
+        
+        markerControls.addEventListener('markerLost', function() {
+          console.log('标记物丢失');
+          document.getElementById('info').style.display = 'block';
+        });
       }
     );
 
     // build a smoothedControls
     var smoothedRoot = new THREE.Group();
+    smoothedRoot.visible = false;  // 初始隐藏平滑根节点
     scene.add(smoothedRoot);
+    
     var smoothedControls = new THREEx.ArSmoothedControls(smoothedRoot, {
-      // minVisibleDelay: 1,
-      // minUnvisibleDelay: 1,
+      minVisibleDelay: 0.5,    // 显示延迟
+      minUnvisibleDelay: 0.5,  // 隐藏延迟
     });
+    
+    // 添加平滑控制器的可见性事件监听
+    smoothedControls.addEventListener('becameVisible', function(){
+      console.log('模型变为可见');
+      smoothedRoot.visible = true;
+    });
+    
+    smoothedControls.addEventListener('becameUnVisible', function(){
+      console.log('模型变为不可见');
+      smoothedRoot.visible = false;
+    });
+    
     onRenderFcts.push(function (delta) {
       smoothedControls.update(markerRoot);
     });
-
-    // smoothedControls.addEventListener('becameVisible', function(){
-    // 	console.log('becameVisible event notified')
-    // })
-    // smoothedControls.addEventListener('becameUnVisible', function(){
-    // 	console.log('becameUnVisible event notified')
-    // })
 
     //////////////////////////////////////////////////////////////////////////////////
     //		add an object in the scene
     //////////////////////////////////////////////////////////////////////////////////
 
-    var mesh = new THREE.AxesHelper();
-    // markerRoot.add(mesh)
-    smoothedRoot.add(mesh);
+    // 添加坐标轴
+    var axes = new THREE.AxesHelper(1);
+    smoothedRoot.add(axes);
 
-    // add a torus knot
-    var geometry = new THREE.CubeGeometry(1, 1, 1);
-    var material = new THREE.MeshNormalMaterial({
+    // 添加半透明立方体
+    var cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
+    var cubeMaterial = new THREE.MeshNormalMaterial({
       transparent: true,
       opacity: 0.5,
       side: THREE.DoubleSide,
     });
-    var mesh = new THREE.Mesh(geometry, material);
-    mesh.position.y = geometry.parameters.height / 2;
-    // markerRoot.add( mesh );
-    smoothedRoot.add(mesh);
+    var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+    cube.position.y = cubeGeometry.parameters.height / 2;
+    smoothedRoot.add(cube);
 
-    var geometry = new THREE.TorusKnotGeometry(0.3, 0.1, 64, 16);
-    var material = new THREE.MeshNormalMaterial();
-    var mesh = new THREE.Mesh(geometry, material);
-    mesh.position.y = 0.5;
-    // markerRoot.add( mesh );
-    smoothedRoot.add(mesh);
+    // 添加环面纽结
+    var torusGeometry = new THREE.TorusKnotGeometry(0.3, 0.1, 64, 16);
+    var torusMaterial = new THREE.MeshNormalMaterial();
+    var torus = new THREE.Mesh(torusGeometry, torusMaterial);
+    torus.position.y = 1.0;
+    smoothedRoot.add(torus);
 
+    // 添加动画
     onRenderFcts.push(function (delta) {
-      mesh.rotation.x += delta * Math.PI;
+      torus.rotation.x += delta * Math.PI;
+      cube.rotation.y += delta * Math.PI * 0.5;
     });
 
     //////////////////////////////////////////////////////////////////////////////////
@@ -225,6 +249,7 @@
     //////////////////////////////////////////////////////////////////////////////////
     var stats = new Stats();
     document.body.appendChild(stats.dom);
+    
     // render the scene
     onRenderFcts.push(function () {
       renderer.render(scene, camera);
@@ -244,6 +269,19 @@
       onRenderFcts.forEach(function (onRenderFct) {
         onRenderFct(deltaMsec / 1000, nowMsec / 1000);
       });
+    });
+
+    // 处理页面可见性变化
+    document.addEventListener('visibilitychange', function() {
+      if (!document.hidden) {
+        // 页面重新可见时，重新初始化AR源
+        arToolkitSource.init(function onReady() {
+          arToolkitSource.onResizeElement([
+            renderer.domElement,
+            arToolkitContext.arController.canvas,
+          ]);
+        });
+      }
     });
   </script>
 </body>
