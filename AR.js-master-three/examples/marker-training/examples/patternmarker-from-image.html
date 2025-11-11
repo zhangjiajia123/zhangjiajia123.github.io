@@ -95,7 +95,7 @@
 
 	// create atToolkitContext
 	var arToolkitContext = new THREEx.ArToolkitContext({
-		cameraParametersUrl: THREEx.ArToolkitContext.baseURL + '../data/data/camera_para.dat',
+		cameraParametersUrl: '../../../data/data/camera_para.dat',
 		detectionMode: 'mono',
 		canvasWidth: 80*3,
 		canvasHeight: 60*3,
@@ -122,13 +122,13 @@
 	scene.add(markerRoot)
 
 	// load image and convert it to a marker
-	var imageURL = THREEx.ArToolkitContext.baseURL + 'examples/marker-training/examples/inner-images/inner-hiro.png'
+	var imageURL = './inner-images/inner-hiro.png'
 	THREEx.ArPatternFile.encodeImageURL(imageURL, function onComplete(patternFileString){
 		var patternURL = 'data:text/plain;base64,' + btoa(patternFileString)
 		// create THREEx.ArMarkerControls
 		var markerControls = new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
 			type : 'pattern',
-			patternUrl : THREEx.ArToolkitContext.baseURL + 'examples/marker-training/examples/pattern-files/pattern-hiro.patt',
+			patternUrl : './pattern-files/pattern-hiro.patt',
 			patternUrl : patternURL,
 		})
 	})
