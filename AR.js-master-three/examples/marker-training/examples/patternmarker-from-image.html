@@ -152,7 +152,7 @@
     scene.add(markerRoot);
 
     // load image and convert it to a marker
-    var imageURL = "./inner-images/inner-hiro.png";
+    var imageURL = "../inner-images/inner-hiro.png";
     THREEx.ArPatternFile.encodeImageURL(
       imageURL,
       function onComplete(patternFileString) {
@@ -164,7 +164,7 @@
           markerRoot,
           {
             type: "pattern",
-            patternUrl: "./pattern-files/pattern-hiro.patt",
+            patternUrl: "../pattern-files/pattern-hiro.patt",
             patternUrl: patternURL,
           }
         );
