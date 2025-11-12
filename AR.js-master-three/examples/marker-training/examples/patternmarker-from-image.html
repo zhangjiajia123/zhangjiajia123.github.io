@@ -226,14 +226,14 @@
     var markerRoot = new THREE.Group();
     markerRoot.visible = false; // 初始隐藏
     scene.add(markerRoot);
-		
+
     // 创建AR标记控制器
     var markerControls = new THREEx.ArMarkerControls(
       arToolkitContext,
       markerRoot,
       {
         type: "pattern", // 图案类型标记
-        patternUrl: "/data/data/marker.patt", // 图案文件URL
+        patternUrl: "/AR.js-master-three/data/data/marker.patt", // 图案文件URL
         size: 1.0, // 标记物理尺寸（米）
         smooth: true, // 启用平滑
         smoothCount: 5, // 平滑帧数
