@@ -647,8 +647,7 @@
     function checkSphereClick(event) {
       // event.preventDefault();
       
-      // 初始化音频
-      initAudioOnUserInteraction();
+      // 音频初始化已在主事件监听器中处理
       
       var mouseX = (event.clientX / window.innerWidth) * 2 - 1;
       var mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -733,14 +732,17 @@
       animateEffect();
     }
 
-    // 添加全局点击事件来启用音频
-    document.addEventListener('click', function(event) {
+    // 合并点击事件处理，同时处理音频初始化和球体点击检测
+    window.addEventListener("click", function(event) {
+      // 初始化音频
       initAudioOnUserInteraction();
-      debugLog("用户点击页面，初始化音频");
-    });
-
-    // 球体点击事件
-    window.addEventListener("click", checkSphereClick, false);
+      
+      // 检查球体点击
+      checkSphereClick(event);
+      
+      // 防止事件冒泡
+      event.stopPropagation();
+    }, false);
 
     // 触摸设备支持
     window.addEventListener("touchstart", function(event) {
