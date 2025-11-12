@@ -255,6 +255,7 @@
       console.log("❌ 标记丢失");
       document.getElementById("status").style.display = "none";
       document.getElementById("info").style.display = "block";
+			markerRoot.visible = false;
     });
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -296,21 +297,21 @@
     //		在场景中添加3D物体
     //////////////////////////////////////////////////////////////////////////////////
 
-    // 添加坐标轴助手（显示方向）
-    var axes = new THREE.AxesHelper(1.5);
-    smoothedRoot.add(axes);
+    // // 添加坐标轴助手（显示方向）
+    // var axes = new THREE.AxesHelper(1.5);
+    // smoothedRoot.add(axes);
 
-    // 添加半透明立方体平台
-    var cubeGeometry = new THREE.BoxGeometry(1, 0.1, 1); // 扁平立方体作为平台
-    var cubeMaterial = new THREE.MeshPhongMaterial({
-      color: 0x4fc3f7,
-      transparent: true,
-      opacity: 0.8,
-      shininess: 100,
-    });
-    var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-    cube.position.y = 0.05; // 稍微抬升
-    smoothedRoot.add(cube);
+    // // 添加半透明立方体平台
+    // var cubeGeometry = new THREE.BoxGeometry(1, 0.1, 1); // 扁平立方体作为平台
+    // var cubeMaterial = new THREE.MeshPhongMaterial({
+    //   color: 0x4fc3f7,
+    //   transparent: true,
+    //   opacity: 0.8,
+    //   shininess: 100,
+    // });
+    // var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+    // cube.position.y = 0.05; // 稍微抬升
+    // smoothedRoot.add(cube);
 
     // 添加环面纽结（主要3D模型）
     var torusGeometry = new THREE.TorusKnotGeometry(0.3, 0.1, 128, 32);
