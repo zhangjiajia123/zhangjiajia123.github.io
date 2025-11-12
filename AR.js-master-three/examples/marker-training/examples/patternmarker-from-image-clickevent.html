@@ -119,6 +119,26 @@
     ✨
   </div>
 
+  <!-- 调试信息 -->
+  <div
+    id="debugInfo"
+    style="
+      position: absolute;
+      top: 100px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      color: #00ff00;
+      padding: 10px;
+      border-radius: 5px;
+      z-index: 100;
+      font-size: 12px;
+      display: none;
+      max-width: 300px;
+    "
+  >
+    调试信息将显示在这里
+  </div>
+
   <script>
     //////////////////////////////////////////////////////////////////////////////////
     //		初始化
@@ -176,6 +196,16 @@
 
     // 存储可点击的物体
     var clickableObjects = [];
+
+    // 调试函数
+    function debugLog(message) {
+      console.log(message);
+      var debugElement = document.getElementById('debugInfo');
+      if (debugElement) {
+        debugElement.innerHTML = message;
+        debugElement.style.display = 'block';
+      }
+    }
 
     ////////////////////////////////////////////////////////////////////////////////
     //         处理AR视频源
@@ -286,6 +316,7 @@
       document.getElementById("status").style.display = "block";
       document.getElementById("clickHint").style.display = "block";
       markerRoot.visible = true;
+      debugLog("标记识别成功！可以点击球体了");
     });
 
     // 添加标记丢失事件监听
@@ -295,6 +326,7 @@
       document.getElementById("info").style.display = "block";
       document.getElementById("clickHint").style.display = "none";
       markerRoot.visible = false;
+      debugLog("标记丢失");
     });
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -319,12 +351,14 @@
     smoothedControls.addEventListener("becameVisible", function () {
       console.log("👁️ 模型变为可见");
       smoothedRoot.visible = true;
+      debugLog("3D模型已显示");
     });
 
     // 平滑控制器变为不可见事件
     smoothedControls.addEventListener("becameUnVisible", function () {
       console.log("🙈 模型变为不可见");
       smoothedRoot.visible = false;
+      debugLog("3D模型已隐藏");
     });
 
     // 每帧更新平滑控制器
@@ -348,7 +382,7 @@
     smoothedRoot.add(torus);
 
     // 添加可点击的浮动球体
-    var sphereGeometry = new THREE.SphereGeometry(0.15, 32, 32);
+    var sphereGeometry = new THREE.SphereGeometry(0.2, 32, 32); // 稍微增大球体便于点击
     var sphereMaterial = new THREE.MeshPhongMaterial({
       color: 0xe91e63,
       shininess: 100,
@@ -356,20 +390,22 @@
       emissiveIntensity: 0.3,
     });
     var sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-    sphere.position.set(0.5, 0.4, 0.3);
+    sphere.position.set(0.5, 0.5, 0.3);
     
     // 为球体添加自定义属性，标识为可点击
     sphere.userData = { 
       clickable: true, 
       originalColor: 0xe91e63,
-      originalScale: 1 
+      originalScale: 1,
+      name: "clickableSphere"
     };
     
     smoothedRoot.add(sphere);
     clickableObjects.push(sphere); // 添加到可点击物体数组
+    console.log("可点击球体已创建:", sphere);
 
     // 添加平台作为球体的底座
-    var platformGeometry = new THREE.CylinderGeometry(0.2, 0.2, 0.05, 16);
+    var platformGeometry = new THREE.CylinderGeometry(0.25, 0.25, 0.05, 16);
     var platformMaterial = new THREE.MeshPhongMaterial({
       color: 0x4fc3f7,
       transparent: true,
@@ -394,7 +430,7 @@
 
       // 球体浮动动画（如果未被点击）
       if (!sphereClicked) {
-        sphere.position.y = 0.4 + Math.sin(animationTime * 2) * 0.1;
+        sphere.position.y = 0.5 + Math.sin(animationTime * 2) * 0.1;
       } else {
         // 点击后的特殊动画
         clickAnimationTime += delta;
@@ -407,28 +443,84 @@
     });
 
     //////////////////////////////////////////////////////////////////////////////////
-    //		添加点击事件处理
+    //		添加点击事件处理 - 修复版本
     //////////////////////////////////////////////////////////////////////////////////
 
     // 鼠标点击事件处理
     function onMouseClick(event) {
-      console.log(even, '鼠标点击事件处理')
+      event.preventDefault();
+      
       // 计算鼠标在标准化设备坐标中的位置 (-1 到 +1)
       mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-      // 更新射线投射器
+      debugLog(`点击位置: x=${mouse.x.toFixed(2)}, y=${mouse.y.toFixed(2)}`);
+
+      // 更新射线投射器 - 使用AR相机的当前矩阵
       raycaster.setFromCamera(mouse, camera);
 
       // 计算与可点击物体的交点
-      var intersects = raycaster.intersectObjects(clickableObjects);
+      var intersects = raycaster.intersectObjects(clickableObjects, true);
+
+      debugLog(`检测到 ${intersects.length} 个交点`);
 
       if (intersects.length > 0) {
         var clickedObject = intersects[0].object;
+        debugLog(`点击到物体: ${clickedObject.userData.name || '未知物体'}`);
         
         if (clickedObject.userData.clickable) {
           handleSphereClick(clickedObject);
         }
+      } else {
+        debugLog("未点击到任何物体");
+        
+        // 调试：显示所有可点击物体的位置
+        clickableObjects.forEach((obj, index) => {
+          var worldPos = new THREE.Vector3();
+          obj.getWorldPosition(worldPos);
+          console.log(`物体 ${index} 世界坐标:`, worldPos);
+        });
+      }
+    }
+
+    // 简化的点击检测方法 - 使用边界球检测
+    function checkSphereClick(event) {
+      event.preventDefault();
+      
+      // 计算鼠标位置
+      var mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+      var mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+      
+      debugLog(`简化检测: x=${mouseX.toFixed(2)}, y=${mouseY.toFixed(2)}`);
+
+      // 获取球体的世界位置
+      var sphereWorldPos = new THREE.Vector3();
+      sphere.getWorldPosition(sphereWorldPos);
+      
+      // 将世界坐标转换为屏幕坐标
+      var screenPos = sphereWorldPos.clone();
+      screenPos.project(camera);
+      
+      // 计算屏幕坐标
+      var screenX = (screenPos.x + 1) / 2 * window.innerWidth;
+      var screenY = (-screenPos.y + 1) / 2 * window.innerHeight;
+      
+      debugLog(`球体屏幕位置: x=${screenX.toFixed(0)}, y=${screenY.toFixed(0)}`);
+
+      // 检查点击位置是否在球体附近（简化碰撞检测）
+      var distance = Math.sqrt(
+        Math.pow(event.clientX - screenX, 2) + 
+        Math.pow(event.clientY - screenY, 2)
+      );
+      
+      debugLog(`点击距离: ${distance.toFixed(0)}px`);
+
+      // 如果距离小于阈值，认为点击成功
+      if (distance < 50) { // 50像素阈值
+        handleSphereClick(sphere);
+        debugLog("✅ 成功点击球体！");
+      } else {
+        debugLog("❌ 未点击到球体");
       }
     }
 
@@ -452,6 +544,7 @@
         
         // 改变提示文字
         document.getElementById("clickHint").innerHTML = "💚 再次点击恢复原状";
+        document.getElementById("clickHint").style.color = "#00ff00";
       } else {
         // 恢复原状
         sphere.material.color.set(sphere.userData.originalColor);
@@ -461,6 +554,7 @@
         
         // 恢复提示文字
         document.getElementById("clickHint").innerHTML = "💡 点击粉色球体有惊喜！";
+        document.getElementById("clickHint").style.color = "#4fc3f7";
       }
     }
 
@@ -469,6 +563,7 @@
       var effectElement = document.getElementById("clickEffect");
       effectElement.style.display = "block";
       effectElement.style.opacity = "1";
+      effectElement.style.transform = "translate(-50%, -50%) scale(1)";
       
       // 动画效果
       var startTime = Date.now();
@@ -479,7 +574,7 @@
         var progress = elapsed / duration;
         
         if (progress < 1) {
-          effectElement.style.transform = `translate(-50%, -50%) scale(${1 + progress})`;
+          effectElement.style.transform = `translate(-50%, -50%) scale(${1 + progress * 0.5})`;
           effectElement.style.opacity = (1 - progress).toString();
           requestAnimationFrame(animateEffect);
         } else {
@@ -490,16 +585,15 @@
       animateEffect();
     }
 
-    // 添加点击事件监听
-    window.addEventListener("click", onMouseClick, false);
+    // 添加点击事件监听 - 使用简化版本
+    window.addEventListener("click", checkSphereClick, false);
 
     // 触摸设备支持
     window.addEventListener("touchstart", function(event) {
       if (event.touches.length === 1) {
-        event.preventDefault();
-        onMouseClick(event.touches[0]);
+        checkSphereClick(event.touches[0]);
       }
-    }, { passive: false });
+    }, false);
 
     //////////////////////////////////////////////////////////////////////////////////
     //		渲染场景
@@ -555,5 +649,6 @@
     });
 
     console.log("AR应用初始化完成，等待标记识别...");
+    debugLog("应用已启动，等待标记识别");
   </script>
 </body>
