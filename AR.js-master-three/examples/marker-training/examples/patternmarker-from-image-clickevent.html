@@ -371,15 +371,15 @@
     //////////////////////////////////////////////////////////////////////////////////
 
     // 添加环面纽结（主要3D模型）
-    var torusGeometry = new THREE.TorusKnotGeometry(0.3, 0.1, 128, 32);
-    var torusMaterial = new THREE.MeshPhongMaterial({
-      color: 0xff9800,
-      shininess: 100,
-      specular: 0x222222,
-    });
-    var torus = new THREE.Mesh(torusGeometry, torusMaterial);
-    torus.position.y = 0.8;
-    smoothedRoot.add(torus);
+    // var torusGeometry = new THREE.TorusKnotGeometry(0.3, 0.1, 128, 32);
+    // var torusMaterial = new THREE.MeshPhongMaterial({
+    //   color: 0xff9800,
+    //   shininess: 100,
+    //   specular: 0x222222,
+    // });
+    // var torus = new THREE.Mesh(torusGeometry, torusMaterial);
+    // torus.position.y = 0.8;
+    // smoothedRoot.add(torus);
 
     // 添加可点击的浮动球体
     var sphereGeometry = new THREE.SphereGeometry(0.2, 32, 32); // 稍微增大球体便于点击
@@ -405,15 +405,15 @@
     console.log("可点击球体已创建:", sphere);
 
     // 添加平台作为球体的底座
-    var platformGeometry = new THREE.CylinderGeometry(0.25, 0.25, 0.05, 16);
-    var platformMaterial = new THREE.MeshPhongMaterial({
-      color: 0x4fc3f7,
-      transparent: true,
-      opacity: 0.8,
-    });
-    var platform = new THREE.Mesh(platformGeometry, platformMaterial);
-    platform.position.set(0.5, 0.3, 0.3);
-    smoothedRoot.add(platform);
+    // var platformGeometry = new THREE.CylinderGeometry(0.25, 0.25, 0.05, 16);
+    // var platformMaterial = new THREE.MeshPhongMaterial({
+    //   color: 0x4fc3f7,
+    //   transparent: true,
+    //   opacity: 0.8,
+    // });
+    // var platform = new THREE.Mesh(platformGeometry, platformMaterial);
+    // platform.position.set(0.5, 0.3, 0.3);
+    // smoothedRoot.add(platform);
 
     // 球体点击状态变量
     var sphereClicked = false;
