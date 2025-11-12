@@ -159,211 +159,185 @@
     调试信息将显示在这里
   </div>
 
-  <!-- 隐藏的音频元素 -->
-  <audio id="clickSound" preload="auto">
-    <!-- 使用相对路径 -->
-    <source src="../../../sounds/click.mp3" type="audio/mpeg">
-    您的浏览器不支持音频元素。
-  </audio>
-
   <script>
     //////////////////////////////////////////////////////////////////////////////////
-    //		音频管理 - 使用本地MP3文件
+    //		音频管理 - 基于您提供的demo重构
     //////////////////////////////////////////////////////////////////////////////////
+
+    // 创建一个AudioContext  
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();  
+     
+    // 假设我们有一个对象来存储加载的音频  
+    let audioBuffers = {};  
+     
+    /**  
+     * 加载音频文件并解码为AudioBuffer  
+     * @param {string} key 唯一标识符，用于存储和检索AudioBuffer  
+     * @param {string} url 音频文件的URL  
+     * @param {Function} onSuccess 成功加载并解码音频后的回调函数（可选）  
+     * @param {Function} onError 加载或解码音频时发生错误的回调函数（可选）  
+     */  
+    function loadAudio(key, url, onSuccess, onError) {  
+        if (audioBuffers[key]) {  
+            // 如果已经加载过，直接调用成功回调（如果有）  
+            if (onSuccess) {  
+                onSuccess(audioBuffers[key]);  
+            }  
+            return; // 提前退出函数  
+        }  
+     
+        fetch(url)  
+            .then(response => {  
+                if (!response.ok) {  
+                    throw new Error('Network response was not ok');  
+                }  
+                return response.arrayBuffer();  
+            })  
+            .then(arrayBuffer => audioCtx.decodeAudioData(arrayBuffer))  
+            .then(audioBuffer => {  
+                // 存储AudioBuffer到对象中  
+                audioBuffers[key] = audioBuffer;  
+     
+                // 调用成功回调函数（如果有）  
+                if (onSuccess) {  
+                    onSuccess(audioBuffer);  
+                }  
+            })  
+            .catch(error => {  
+                // 调用错误回调函数（如果有）  
+                if (onError) {  
+                    onError(error);  
+                } else {  
+                    console.error('Error loading and decoding audio:', error);  
+                }  
+            });  
+    }  
+     
+    /**  
+     * 播放已加载的音频  
+     * @param {string} key 唯一标识符，用于检索AudioBuffer  
+     */  
+    function playAudio(key) {  
+        const audioBuffer = audioBuffers[key];  
+        if (!audioBuffer) {  
+            console.error('Audio buffer not found for key:', key);  
+            return;  
+        }  
+     
+        // 创建一个AudioBufferSourceNode来播放音频  
+        const source = audioCtx.createBufferSource();  
+        source.buffer = audioBuffer;  
+        source.connect(audioCtx.destination); // 连接到输出（扬声器）  
+     
+        // 播放音频  
+        source.start();  
+    }
 
     // 音频状态
     var audioEnabled = false;
     var audioLoaded = false;
-    var clickAudio = null;
 
     // 初始化音频系统
     function initAudio() {
       try {
-        // 显示音频调试信息
-        debugLog("开始初始化音频系统...");
-        
-        // 获取音频元素
-        clickAudio = document.getElementById('clickSound');
-        console.log("音频元素:", clickAudio);
-        if (!clickAudio) {
-          console.error("未找到音频元素");
-          debugLog("错误：未找到音频元素");
-          return;
-        }
-        
-        // 设置音频属性
-        clickAudio.volume = 0.7;
-        
-        // 显示音频文件路径
-        var source = clickAudio.querySelector('source');
-        if (source) {
-          debugLog("音频文件路径: " + source.src);
-        }
-        
-        // 检查音频是否加载成功
-        var loadPromise = new Promise(function(resolve, reject) {
-          // 如果音频已经可以播放
-          if (clickAudio.readyState >= 3) {
-            console.log("音频已准备就绪");
-            resolve();
-            return;
+        // 加载点击音效
+        loadAudio(
+          'clickSound', 
+          '/AR.js-master-three/sounds/click.mp3', 
+          function(audioBuffer) {
+            console.log("MP3音频加载成功");
+            audioLoaded = true;
+            audioEnabled = true;
+            document.getElementById('audioStatus').innerHTML = "🔊 音频已加载";
+            document.getElementById('audioStatus').style.color = "#00ff00";
+            debugLog("MP3音频已就绪");
+          },
+          function(error) {
+            console.error("MP3音频加载失败:", error);
+            debugLog("音频加载失败: " + error.message);
+            // 即使失败也允许点击，使用备用方案
+            audioEnabled = true;
+            createFallbackSound();
           }
-          
-          clickAudio.addEventListener('canplaythrough', function() {
-            console.log("音频可以播放");
-            resolve();
-          }, { once: true });
-          
-          clickAudio.addEventListener('error', function(e) {
-            console.error('音频加载失败:', e);
-            var errorCode = clickAudio.error ? clickAudio.error.code : 'unknown';
-            var errorMessages = {
-              1: '用户中止了获取过程',
-              2: '网络错误',
-              3: '解码错误',
-              4: '不支持的音频格式'
-            };
-            var errorMsg = errorMessages[errorCode] || '未知错误';
-            console.log('音频错误详情:', errorCode, errorMsg);
-            reject(new Error('音频加载失败: ' + errorMsg));
-          });
-          
-          clickAudio.addEventListener('load', function() {
-            console.log("音频加载事件触发");
-          });
-          
-          // 主动尝试加载
-          clickAudio.load();
-        });
-        
-        // 等待音频加载完成
-        loadPromise.then(function() {
-          audioLoaded = true;
-          audioEnabled = true;
-          document.getElementById('audioStatus').innerHTML = "🔊 音频已加载";
-          document.getElementById('audioStatus').style.color = "#00ff00";
-          console.log("MP3音频加载成功");
-          debugLog("MP3音频已就绪");
-          
-          // 测试播放（静音）
-          testAudioPlayback();
-        }).catch(function(error) {
-          console.error("音频加载失败:", error);
-          debugLog("音频加载失败: " + error.message);
-          // 显示详细的错误信息
-          showAudioError(error.message);
-        });
+        );
         
       } catch (error) {
         console.error("音频初始化失败:", error);
         debugLog("音频初始化失败: " + error.message);
+        audioEnabled = true; // 允许点击，只是没有声音
       }
     }
 
-    // 测试音频播放
-    function testAudioPlayback() {
-      if (!clickAudio || !audioLoaded) return;
-      
+    // 创建备用音效
+    function createFallbackSound() {
       try {
-        // 创建一个测试播放（静音）
-        var testAudio = clickAudio.cloneNode();
-        testAudio.volume = 0; // 静音测试
-        testAudio.play().then(function() {
-          console.log("音频测试播放成功");
-          testAudio.pause();
-        }).catch(function(error) {
-          console.warn("音频测试播放失败:", error);
-        });
-      } catch (error) {
-        console.warn("音频测试失败:", error);
+        // 创建一个简单的备用音效
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.3);
+        
+        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        
+        oscillator.start(audioCtx.currentTime);
+        oscillator.stop(audioCtx.currentTime + 0.3);
+        
+        // 存储备用音效
+        audioBuffers['fallbackSound'] = true;
+        console.log("备用音效创建成功");
+        
+      } catch (fallbackError) {
+        console.error("备用音效创建失败:", fallbackError);
       }
-    }
-
-    // 显示音频错误信息
-    function showAudioError(message) {
-      var errorHTML = `
-        <div style="color: #ff6b6b; margin-top: 10px; font-size: 12px;">
-          音频加载问题:<br/>
-          ${message}<br/>
-          请检查:<br/>
-          1. 音频文件路径是否正确<br/>
-          2. 文件是否存在<br/>
-          3. 服务器是否允许访问音频文件
-        </div>
-      `;
-      document.getElementById('audioStatus').innerHTML = "❌ 音频加载失败" + errorHTML;
     }
 
     // 播放点击音效
     function playClickSound() {
-      if (!audioEnabled || !audioLoaded || !clickAudio) {
-        debugLog("音频未就绪，无法播放");
+      if (!audioEnabled) {
+        debugLog("音频未启用");
         return;
       }
       
       try {
-        console.log("尝试播放MP3音频");
-        debugLog("准备播放音频");
+        console.log("尝试播放音频");
         
-        // 停止并重置音频
-        clickAudio.pause();
-        clickAudio.currentTime = 0;
-        
-        // 播放音频
-        var playPromise = clickAudio.play();
-        
-        if (playPromise !== undefined) {
-          playPromise.then(function() {
-            console.log("MP3音频播放成功");
-            debugLog("MP3音频播放成功");
-          }).catch(function(error) {
-            console.error("MP3音频播放失败:", error);
-            debugLog("播放失败: " + error.message);
-            
-            // 尝试使用Web Audio API作为备用方案
-            playFallbackSound();
-          });
+        if (audioBuffers['clickSound']) {
+          // 播放MP3音频
+          playAudio('clickSound');
+          console.log("MP3音频播放成功");
+          debugLog("MP3音频播放成功");
+        } else if (audioBuffers['fallbackSound']) {
+          // 播放备用音效
+          createFallbackSound();
+          console.log("播放备用音效");
+          debugLog("播放备用音效");
+        } else {
+          console.log("没有可用的音效");
+          debugLog("没有可用的音效");
         }
       } catch (error) {
-        console.error("播放MP3音频失败:", error);
-        debugLog("播放异常: " + error.message);
-        
-        // 使用备用方案
-        playFallbackSound();
-      }
-    }
-
-    // 备用音效方案
-    function playFallbackSound() {
-      try {
-        var audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        var oscillator = audioContext.createOscillator();
-        var gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(300, audioContext.currentTime + 0.3);
-        
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-        
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.3);
-        
-        console.log("使用备用音效");
-        debugLog("使用备用音效");
-      } catch (fallbackError) {
-        console.error("备用音效也失败:", fallbackError);
-        debugLog("所有音效方案都失败");
+        console.error("播放音效失败:", error);
+        debugLog("播放失败: " + error.message);
       }
     }
 
     // 用户交互后初始化音频
     function initAudioOnUserInteraction() {
       if (!audioEnabled) {
-        initAudio();
+        // 恢复音频上下文（解决浏览器自动播放限制）
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume().then(() => {
+            console.log("AudioContext resumed");
+            initAudio();
+          });
+        } else {
+          initAudio();
+        }
       }
     }
 
@@ -426,7 +400,7 @@
 
     // 调试函数
     function debugLog(message) {
-      // console.log(message);
+      console.log(message);
       var debugElement = document.getElementById('debugInfo');
       if (debugElement) {
         debugElement.innerHTML = message;
@@ -523,7 +497,7 @@
     );
 
     markerControls.addEventListener("markerFound", function () {
-      // console.log("✅ 标记识别成功");
+      console.log("✅ 标记识别成功");
       document.getElementById("info").style.display = "none";
       document.getElementById("status").style.display = "block";
       document.getElementById("clickHint").style.display = "block";
@@ -532,7 +506,7 @@
     });
 
     markerControls.addEventListener("markerLost", function () {
-      // console.log("❌ 标记丢失");
+      console.log("❌ 标记丢失");
       document.getElementById("status").style.display = "none";
       document.getElementById("info").style.display = "block";
       document.getElementById("clickHint").style.display = "none";
@@ -576,7 +550,6 @@
     //		在场景中添加3D物体
     //////////////////////////////////////////////////////////////////////////////////
 
-    // 添加环面纽结
     // var torusGeometry = new THREE.TorusKnotGeometry(0.3, 0.1, 128, 32);
     // var torusMaterial = new THREE.MeshPhongMaterial({
     //   color: 0xff9800,
@@ -607,7 +580,6 @@
     smoothedRoot.add(sphere);
     clickableObjects.push(sphere);
 
-    // 添加平台作为球体的底座
     // var platformGeometry = new THREE.CylinderGeometry(0.25, 0.25, 0.05, 16);
     // var platformMaterial = new THREE.MeshPhongMaterial({
     //   color: 0x4fc3f7,
@@ -645,9 +617,10 @@
     //////////////////////////////////////////////////////////////////////////////////
 
     function checkSphereClick(event) {
-      // event.preventDefault();
+      event.preventDefault();
       
-      // 音频初始化已在主事件监听器中处理
+      // 初始化音频
+      initAudioOnUserInteraction();
       
       var mouseX = (event.clientX / window.innerWidth) * 2 - 1;
       var mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -683,7 +656,7 @@
     function handleSphereClick(sphere) {
       console.log("🎯 球体被点击了！");
       
-      // 播放MP3音效
+      // 播放音效
       playClickSound();
       
       sphereClicked = !sphereClicked;
@@ -732,17 +705,13 @@
       animateEffect();
     }
 
-    // 合并点击事件处理，同时处理音频初始化和球体点击检测
-    window.addEventListener("click", function(event) {
-      // 初始化音频
+    // 添加全局点击事件来启用音频
+    document.addEventListener('click', function(event) {
       initAudioOnUserInteraction();
-      
-      // 检查球体点击
-      checkSphereClick(event);
-      
-      // 防止事件冒泡
-      event.stopPropagation();
-    }, false);
+    });
+
+    // 球体点击事件
+    window.addEventListener("click", checkSphereClick, false);
 
     // 触摸设备支持
     window.addEventListener("touchstart", function(event) {
