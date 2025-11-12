@@ -60,6 +60,8 @@
     </div>
     请将摄像头对准AR标记图案<br />
     <small style="color: #b0bec5">模型将在识别到标记后显示</small>
+    <br />
+    <small style="color: #ff9800">点击页面任意位置启用音频</small>
   </div>
 
   <!-- 状态指示器 -->
@@ -100,23 +102,22 @@
     💡 点击粉色球体播放音频！
   </div>
 
-  <!-- 音频控制 -->
+  <!-- 音频状态 -->
   <div
-    id="audioControls"
+    id="audioStatus"
     style="
       position: absolute;
       top: 20px;
       right: 20px;
       background: rgba(0, 0, 0, 0.7);
-      color: white;
+      color: #ff9800;
       padding: 10px 15px;
       border-radius: 20px;
       z-index: 100;
       font-size: 14px;
-      display: none;
     "
   >
-    🔊 音频已加载
+    🔇 点击页面启用音频
   </div>
 
   <!-- 点击效果显示 -->
@@ -135,7 +136,7 @@
       pointer-events: none;
     "
   >
-    🎵
+    🔊
   </div>
 
   <!-- 调试信息 -->
@@ -158,21 +159,23 @@
     调试信息将显示在这里
   </div>
 
-  <!-- 隐藏的音频元素 - 只保留点击音效 -->
+  <!-- 隐藏的音频元素 -->
   <audio id="clickSound" preload="auto">
-    <source src="/AR.js-master-three/sounds/click.MP3" type="audio/mpeg">
+    <!-- 修改这里的路径为您的MP3文件路径 -->
+    <source src="/AR.js-master-three/sounds/click.mp3" type="audio/mpeg">
+    <source src="/AR.js-master-three/sounds/click.mp3" type="audio/ogg">
     您的浏览器不支持音频元素。
   </audio>
 
   <script>
     //////////////////////////////////////////////////////////////////////////////////
-    //		音频管理 - 只保留点击音效
+    //		音频管理 - 使用本地MP3文件
     //////////////////////////////////////////////////////////////////////////////////
 
-    // 音频元素和状态
-    var clickAudio = null;
+    // 音频状态
     var audioEnabled = false;
     var audioLoaded = false;
+    var clickAudio = null;
 
     // 初始化音频系统
     function initAudio() {
@@ -180,15 +183,36 @@
         // 获取音频元素
         clickAudio = document.getElementById('clickSound');
         
+        if (!clickAudio) {
+          console.error("未找到音频元素");
+          debugLog("错误：未找到音频元素");
+          return;
+        }
+        
         // 设置音频属性
         clickAudio.volume = 0.7;
         
         // 检查音频是否加载成功
         var loadPromise = new Promise(function(resolve, reject) {
-          clickAudio.addEventListener('canplaythrough', resolve, { once: true });
+          // 如果音频已经可以播放
+          if (clickAudio.readyState >= 3) {
+            resolve();
+            return;
+          }
+          
+          clickAudio.addEventListener('canplaythrough', function() {
+            console.log("音频可以播放");
+            resolve();
+          }, { once: true });
+          
           clickAudio.addEventListener('error', function(e) {
-            console.error('点击音效加载失败:', e);
-            reject(new Error('点击音效加载失败'));
+            console.error('音频加载失败:', e);
+            console.log('音频错误详情:', clickAudio.error);
+            reject(new Error('音频加载失败: ' + (clickAudio.error ? clickAudio.error.message : '未知错误')));
+          });
+          
+          clickAudio.addEventListener('load', function() {
+            console.log("音频加载事件触发");
           });
         });
         
@@ -196,28 +220,70 @@
         loadPromise.then(function() {
           audioLoaded = true;
           audioEnabled = true;
-          document.getElementById('audioControls').style.display = 'block';
-          console.log("点击音效加载成功");
-          debugLog("音频系统已就绪");
+          document.getElementById('audioStatus').innerHTML = "🔊 音频已加载";
+          document.getElementById('audioStatus').style.color = "#00ff00";
+          console.log("MP3音频加载成功");
+          debugLog("MP3音频已就绪");
+          
+          // 测试播放（静音）
+          testAudioPlayback();
         }).catch(function(error) {
           console.error("音频加载失败:", error);
-          debugLog("音频加载失败");
-          // 即使音频失败，也尝试启用音频
-          audioEnabled = true;
+          debugLog("音频加载失败: " + error.message);
+          // 显示详细的错误信息
+          showAudioError(error.message);
         });
         
       } catch (error) {
         console.error("音频初始化失败:", error);
-        debugLog("音频初始化失败");
-        audioEnabled = false;
+        debugLog("音频初始化失败: " + error.message);
       }
+    }
+
+    // 测试音频播放
+    function testAudioPlayback() {
+      if (!clickAudio || !audioLoaded) return;
+      
+      try {
+        // 创建一个测试播放（静音）
+        var testAudio = clickAudio.cloneNode();
+        testAudio.volume = 0; // 静音测试
+        testAudio.play().then(function() {
+          console.log("音频测试播放成功");
+          testAudio.pause();
+        }).catch(function(error) {
+          console.warn("音频测试播放失败:", error);
+        });
+      } catch (error) {
+        console.warn("音频测试失败:", error);
+      }
+    }
+
+    // 显示音频错误信息
+    function showAudioError(message) {
+      var errorHTML = `
+        <div style="color: #ff6b6b; margin-top: 10px; font-size: 12px;">
+          音频加载问题:<br/>
+          ${message}<br/>
+          请检查:<br/>
+          1. 音频文件路径是否正确<br/>
+          2. 文件是否存在<br/>
+          3. 服务器是否允许访问音频文件
+        </div>
+      `;
+      document.getElementById('audioStatus').innerHTML = "❌ 音频加载失败" + errorHTML;
     }
 
     // 播放点击音效
     function playClickSound() {
-      if (!audioEnabled || !audioLoaded) return;
+      if (!audioEnabled || !audioLoaded || !clickAudio) {
+        debugLog("音频未就绪，无法播放");
+        return;
+      }
       
       try {
+        console.log("尝试播放MP3音频");
+        
         // 停止并重置音频
         clickAudio.pause();
         clickAudio.currentTime = 0;
@@ -227,17 +293,53 @@
         
         if (playPromise !== undefined) {
           playPromise.then(function() {
-            console.log("点击音效播放成功");
+            console.log("MP3音频播放成功");
+            debugLog("MP3音频播放成功");
           }).catch(function(error) {
-            console.error("点击音效播放失败:", error);
+            console.error("MP3音频播放失败:", error);
+            debugLog("播放失败: " + error.message);
+            
+            // 尝试使用Web Audio API作为备用方案
+            playFallbackSound();
           });
         }
       } catch (error) {
-        console.error("播放点击音效失败:", error);
+        console.error("播放MP3音频失败:", error);
+        debugLog("播放异常: " + error.message);
+        
+        // 使用备用方案
+        playFallbackSound();
       }
     }
 
-    // 用户交互后初始化音频（浏览器自动播放策略要求）
+    // 备用音效方案
+    function playFallbackSound() {
+      try {
+        var audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        var oscillator = audioContext.createOscillator();
+        var gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(300, audioContext.currentTime + 0.3);
+        
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+        
+        console.log("使用备用音效");
+        debugLog("使用备用音效");
+      } catch (fallbackError) {
+        console.error("备用音效也失败:", fallbackError);
+        debugLog("所有音效方案都失败");
+      }
+    }
+
+    // 用户交互后初始化音频
     function initAudioOnUserInteraction() {
       if (!audioEnabled) {
         initAudio();
@@ -250,15 +352,15 @@
 
     // 初始化WebGL渲染器
     var renderer = new THREE.WebGLRenderer({
-      alpha: true, // 启用透明背景
-      antialias: true, // 启用抗锯齿
-      preserveDrawingBuffer: true, // 保留绘图缓冲区
+      alpha: true,
+      antialias: true,
+      preserveDrawingBuffer: true,
     });
 
     // 设置渲染器为全屏
-    renderer.setClearColor(new THREE.Color("black"), 0); // 黑色背景
-    renderer.setPixelRatio(window.devicePixelRatio || 1); // 支持高DPI屏幕
-    renderer.setSize(window.innerWidth, window.innerHeight); // 全屏尺寸
+    renderer.setClearColor(new THREE.Color("black"), 0);
+    renderer.setPixelRatio(window.devicePixelRatio || 1);
+    renderer.setSize(window.innerWidth, window.innerHeight);
 
     // 设置渲染器DOM元素样式为全屏覆盖
     renderer.domElement.style.position = "fixed";
@@ -290,11 +392,11 @@
     //		初始化基础相机
     //////////////////////////////////////////////////////////////////////////////////
 
-    // 创建Three.js相机（投影矩阵将由ARToolKit设置）
+    // 创建Three.js相机
     var camera = new THREE.Camera();
     scene.add(camera);
 
-    // 射线投射器（用于3D物体点击检测）
+    // 射线投射器
     var raycaster = new THREE.Raycaster();
     var mouse = new THREE.Vector2();
 
@@ -315,27 +417,23 @@
     //         处理AR视频源
     ////////////////////////////////////////////////////////////////////////////////
 
-    // 创建AR视频源（使用摄像头）
     var arToolkitSource = new THREEx.ArToolkitSource({
-      sourceType: "webcam", // 使用摄像头作为视频源
+      sourceType: "webcam",
     });
 
-    // 初始化视频源
     arToolkitSource.init(function onReady() {
       console.log("摄像头初始化完成");
 
-      // 设置视频元素为全屏
       if (arToolkitSource.domElement) {
         arToolkitSource.domElement.style.position = "fixed";
         arToolkitSource.domElement.style.top = "0px";
         arToolkitSource.domElement.style.left = "0px";
         arToolkitSource.domElement.style.width = "100%";
         arToolkitSource.domElement.style.height = "100%";
-        arToolkitSource.domElement.style.objectFit = "cover"; // 保持比例并覆盖整个区域
+        arToolkitSource.domElement.style.objectFit = "cover";
         arToolkitSource.domElement.style.zIndex = "0";
       }
 
-      // 处理渲染器和AR画布的大小调整
       arToolkitSource.onResizeElement(
         [
           renderer.domElement,
@@ -346,12 +444,8 @@
       );
     });
 
-    // 处理窗口大小变化
     window.addEventListener("resize", function () {
-      // 更新渲染器大小为全屏
       renderer.setSize(window.innerWidth, window.innerHeight);
-
-      // 处理AR视频源大小调整
       arToolkitSource.onResizeElement(
         [
           renderer.domElement,
@@ -366,24 +460,20 @@
     //         初始化AR上下文
     ////////////////////////////////////////////////////////////////////////////////
 
-    // 创建AR工具包上下文
     var arToolkitContext = new THREEx.ArToolkitContext({
-      cameraParametersUrl: "/AR.js-master-three/data/data/camera_para.dat", // 相机参数文件
-      detectionMode: "mono", // 单目检测模式
-      maxDetectionRate: 60, // 最大检测率
-      canvasWidth: 1280, // 增加画布宽度以提高检测精度
-      canvasHeight: 720, // 增加画布高度
-      debug: false, // 关闭调试模式
+      cameraParametersUrl: "../../../data/data/camera_para.dat",
+      detectionMode: "mono",
+      maxDetectionRate: 60,
+      canvasWidth: 1280,
+      canvasHeight: 720,
+      debug: false,
     });
 
-    // 初始化AR上下文
     arToolkitContext.init(function onCompleted() {
       console.log("AR上下文初始化完成");
-      // 将AR投影矩阵复制到Three.js相机
       camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
     });
 
-    // 每帧更新AR工具包
     onRenderFcts.push(function () {
       if (arToolkitSource.ready === false) return;
       arToolkitContext.update(arToolkitSource.domElement);
@@ -393,27 +483,24 @@
     //         创建AR标记控制器
     ////////////////////////////////////////////////////////////////////////////////
 
-    // 创建标记根组（用于放置识别到的标记）
     var markerRoot = new THREE.Group();
-    markerRoot.visible = false; // 初始隐藏
+    markerRoot.visible = false;
     scene.add(markerRoot);
 
-    // 创建AR标记控制器
     var markerControls = new THREEx.ArMarkerControls(
       arToolkitContext,
       markerRoot,
       {
-        type: "pattern", // 图案类型标记
-        patternUrl: "/AR.js-master-three/data/data/marker.patt", // 图案文件URL
-        size: 1.0, // 标记物理尺寸（米）
-        smooth: true, // 启用平滑
-        smoothCount: 5, // 平滑帧数
-        smoothTolerance: 0.01, // 平滑容差
-        smoothThreshold: 2, // 平滑阈值
+        type: "pattern",
+        patternUrl: "/AR.js-master-three/data/data/marker.patt",
+        size: 1.0,
+        smooth: true,
+        smoothCount: 5,
+        smoothTolerance: 0.01,
+        smoothThreshold: 2,
       }
     );
 
-    // 添加标记找到事件监听
     markerControls.addEventListener("markerFound", function () {
       console.log("✅ 标记识别成功");
       document.getElementById("info").style.display = "none";
@@ -423,7 +510,6 @@
       debugLog("标记识别成功！可以点击球体了");
     });
 
-    // 添加标记丢失事件监听
     markerControls.addEventListener("markerLost", function () {
       console.log("❌ 标记丢失");
       document.getElementById("status").style.display = "none";
@@ -437,35 +523,30 @@
     //         创建平滑控制器
     ////////////////////////////////////////////////////////////////////////////////
 
-    // 创建平滑根组（用于放置3D模型）
     var smoothedRoot = new THREE.Group();
-    smoothedRoot.visible = false; // 初始隐藏
+    smoothedRoot.visible = false;
     scene.add(smoothedRoot);
 
-    // 创建平滑控制器（减少AR跟踪抖动）
     var smoothedControls = new THREEx.ArSmoothedControls(smoothedRoot, {
-      minVisibleDelay: 0.3, // 最小可见延迟（秒）
-      minUnvisibleDelay: 0.5, // 最小不可见延迟（秒）
-      smoothDelay: 0.1, // 平滑延迟
-      smoothPosition: 0.8, // 位置平滑度
-      smoothRotation: 0.8, // 旋转平滑度
+      minVisibleDelay: 0.3,
+      minUnvisibleDelay: 0.5,
+      smoothDelay: 0.1,
+      smoothPosition: 0.8,
+      smoothRotation: 0.8,
     });
 
-    // 平滑控制器变为可见事件
     smoothedControls.addEventListener("becameVisible", function () {
       console.log("👁️ 模型变为可见");
       smoothedRoot.visible = true;
       debugLog("3D模型已显示");
     });
 
-    // 平滑控制器变为不可见事件
     smoothedControls.addEventListener("becameUnVisible", function () {
       console.log("🙈 模型变为不可见");
       smoothedRoot.visible = false;
       debugLog("3D模型已隐藏");
     });
 
-    // 每帧更新平滑控制器
     onRenderFcts.push(function (delta) {
       smoothedControls.update(markerRoot);
     });
@@ -474,18 +555,16 @@
     //		在场景中添加3D物体
     //////////////////////////////////////////////////////////////////////////////////
 
-    // 添加环面纽结（主要3D模型）
-    // var torusGeometry = new THREE.TorusKnotGeometry(0.3, 0.1, 128, 32);
-    // var torusMaterial = new THREE.MeshPhongMaterial({
-    //   color: 0xff9800,
-    //   shininess: 100,
-    //   specular: 0x222222,
-    // });
-    // var torus = new THREE.Mesh(torusGeometry, torusMaterial);
-    // torus.position.y = 0.8;
-    // smoothedRoot.add(torus);
+    var torusGeometry = new THREE.TorusKnotGeometry(0.3, 0.1, 128, 32);
+    var torusMaterial = new THREE.MeshPhongMaterial({
+      color: 0xff9800,
+      shininess: 100,
+      specular: 0x222222,
+    });
+    var torus = new THREE.Mesh(torusGeometry, torusMaterial);
+    torus.position.y = 0.8;
+    smoothedRoot.add(torus);
 
-    // 添加可点击的浮动球体
     var sphereGeometry = new THREE.SphereGeometry(0.2, 32, 32);
     var sphereMaterial = new THREE.MeshPhongMaterial({
       color: 0xe91e63,
@@ -496,7 +575,6 @@
     var sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
     sphere.position.set(0.5, 0.5, 0.3);
     
-    // 为球体添加自定义属性，标识为可点击
     sphere.userData = { 
       clickable: true, 
       originalColor: 0xe91e63,
@@ -506,37 +584,30 @@
     
     smoothedRoot.add(sphere);
     clickableObjects.push(sphere);
-    console.log("可点击球体已创建:", sphere);
 
-    // 添加平台作为球体的底座
-    // var platformGeometry = new THREE.CylinderGeometry(0.25, 0.25, 0.05, 16);
-    // var platformMaterial = new THREE.MeshPhongMaterial({
-    //   color: 0x4fc3f7,
-    //   transparent: true,
-    //   opacity: 0.8,
-    // });
-    // var platform = new THREE.Mesh(platformGeometry, platformMaterial);
-    // platform.position.set(0.5, 0.3, 0.3);
-    // smoothedRoot.add(platform);
+    var platformGeometry = new THREE.CylinderGeometry(0.25, 0.25, 0.05, 16);
+    var platformMaterial = new THREE.MeshPhongMaterial({
+      color: 0x4fc3f7,
+      transparent: true,
+      opacity: 0.8,
+    });
+    var platform = new THREE.Mesh(platformGeometry, platformMaterial);
+    platform.position.set(0.5, 0.3, 0.3);
+    smoothedRoot.add(platform);
 
-    // 球体点击状态变量
     var sphereClicked = false;
     var clickAnimationTime = 0;
 
-    // 添加动画效果
     var animationTime = 0;
     onRenderFcts.push(function (delta) {
       animationTime += delta;
 
-      // 环面纽结旋转
-      // torus.rotation.x = animationTime * 0.5;
-      // torus.rotation.y = animationTime * 0.8;
+      torus.rotation.x = animationTime * 0.5;
+      torus.rotation.y = animationTime * 0.8;
 
-      // 球体浮动动画
       if (!sphereClicked) {
         sphere.position.y = 0.5 + Math.sin(animationTime * 2) * 0.1;
       } else {
-        // 点击后的特殊动画
         clickAnimationTime += delta;
         sphere.rotation.x = clickAnimationTime * 3;
         sphere.rotation.y = clickAnimationTime * 2;
@@ -547,37 +618,31 @@
     });
 
     //////////////////////////////////////////////////////////////////////////////////
-    //		添加点击事件处理 - 只保留点击音效
+    //		添加点击事件处理
     //////////////////////////////////////////////////////////////////////////////////
 
-    // 简化的点击检测方法
     function checkSphereClick(event) {
       event.preventDefault();
       
-      // 用户交互后初始化音频
+      // 初始化音频
       initAudioOnUserInteraction();
       
-      // 计算鼠标位置
       var mouseX = (event.clientX / window.innerWidth) * 2 - 1;
       var mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
       
-      debugLog(`点击检测: x=${mouseX.toFixed(2)}, y=${mouseY.toFixed(2)}`);
+      debugLog(`点击位置: x=${mouseX.toFixed(2)}, y=${mouseY.toFixed(2)}`);
 
-      // 获取球体的世界位置
       var sphereWorldPos = new THREE.Vector3();
       sphere.getWorldPosition(sphereWorldPos);
       
-      // 将世界坐标转换为屏幕坐标
       var screenPos = sphereWorldPos.clone();
       screenPos.project(camera);
       
-      // 计算屏幕坐标
       var screenX = (screenPos.x + 1) / 2 * window.innerWidth;
       var screenY = (-screenPos.y + 1) / 2 * window.innerHeight;
       
-      debugLog(`球体屏幕位置: x=${screenX.toFixed(0)}, y=${screenY.toFixed(0)}`);
+      debugLog(`球体位置: x=${screenX.toFixed(0)}, y=${screenY.toFixed(0)}`);
 
-      // 检查点击位置是否在球体附近
       var distance = Math.sqrt(
         Math.pow(event.clientX - screenX, 2) + 
         Math.pow(event.clientY - screenY, 2)
@@ -585,7 +650,6 @@
       
       debugLog(`点击距离: ${distance.toFixed(0)}px`);
 
-      // 如果距离小于阈值，认为点击成功
       if (distance < 50) {
         handleSphereClick(sphere);
         debugLog("✅ 成功点击球体！");
@@ -594,50 +658,39 @@
       }
     }
 
-    // 处理球体点击
     function handleSphereClick(sphere) {
       console.log("🎯 球体被点击了！");
       
-      // 播放点击音效
+      // 播放MP3音效
       playClickSound();
       
       sphereClicked = !sphereClicked;
       
-      // 显示点击效果
       showClickEffect();
       
       if (sphereClicked) {
-        // 点击状态：改变颜色和发光效果
         sphere.material.color.set(0x00ff00);
         sphere.material.emissive.set(0x00ff00);
         sphere.material.emissiveIntensity = 0.5;
-        
         sphere.userData.originalScale = sphere.scale.x;
-        
-        // 改变提示文字
         document.getElementById("clickHint").innerHTML = "💚 再次点击恢复原状";
         document.getElementById("clickHint").style.color = "#00ff00";
       } else {
-        // 恢复原状
         sphere.material.color.set(sphere.userData.originalColor);
         sphere.material.emissive.set(sphere.userData.originalColor);
         sphere.material.emissiveIntensity = 0.3;
         sphere.scale.setScalar(sphere.userData.originalScale);
-        
-        // 恢复提示文字
         document.getElementById("clickHint").innerHTML = "💡 点击粉色球体播放音频！";
         document.getElementById("clickHint").style.color = "#4fc3f7";
       }
     }
 
-    // 显示点击效果
     function showClickEffect() {
       var effectElement = document.getElementById("clickEffect");
       effectElement.style.display = "block";
       effectElement.style.opacity = "1";
       effectElement.style.transform = "translate(-50%, -50%) scale(1)";
       
-      // 动画效果
       var startTime = Date.now();
       var duration = 1000;
       
@@ -657,7 +710,12 @@
       animateEffect();
     }
 
-    // 添加点击事件监听
+    // 添加全局点击事件来启用音频
+    document.addEventListener('click', function(event) {
+      initAudioOnUserInteraction();
+    });
+
+    // 球体点击事件
     window.addEventListener("click", checkSphereClick, false);
 
     // 触摸设备支持
@@ -667,16 +725,10 @@
       }
     }, false);
 
-    // 页面点击时初始化音频
-    document.addEventListener('click', function() {
-      initAudioOnUserInteraction();
-    }, { once: true });
-
     //////////////////////////////////////////////////////////////////////////////////
     //		渲染场景
     //////////////////////////////////////////////////////////////////////////////////
 
-    // 添加性能监控
     var stats = new Stats();
     stats.dom.style.position = "fixed";
     stats.dom.style.top = "60px";
@@ -684,30 +736,22 @@
     stats.dom.style.zIndex = "100";
     document.body.appendChild(stats.dom);
 
-    // 渲染场景函数
     onRenderFcts.push(function () {
       renderer.render(scene, camera);
       stats.update();
     });
 
-    // 运行动画循环
     var lastTimeMsec = null;
     requestAnimationFrame(function animate(nowMsec) {
-      // 保持循环
       requestAnimationFrame(animate);
-
-      // 计算时间增量
       lastTimeMsec = lastTimeMsec || nowMsec - 1000 / 60;
       var deltaMsec = Math.min(200, nowMsec - lastTimeMsec);
       lastTimeMsec = nowMsec;
-
-      // 调用每个渲染函数
       onRenderFcts.forEach(function (onRenderFct) {
         onRenderFct(deltaMsec / 1000, nowMsec / 1000);
       });
     });
 
-    // 处理页面可见性变化
     document.addEventListener("visibilitychange", function () {
       if (!document.hidden) {
         console.log("页面重新激活，重新初始化AR");
@@ -724,7 +768,7 @@
       }
     });
 
-    console.log("AR应用初始化完成，等待标记识别...");
-    debugLog("应用已启动，等待标记识别 - 点击页面任意位置启用音频");
+    console.log("AR应用初始化完成");
+    debugLog("应用已启动 - 点击页面任意位置启用音频");
   </script>
 </body>
