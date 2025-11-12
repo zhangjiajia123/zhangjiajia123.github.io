@@ -405,7 +405,7 @@
 
     // 调试函数
     function debugLog(message) {
-      console.log(message);
+      // console.log(message);
       var debugElement = document.getElementById('debugInfo');
       if (debugElement) {
         debugElement.innerHTML = message;
@@ -502,7 +502,7 @@
     );
 
     markerControls.addEventListener("markerFound", function () {
-      console.log("✅ 标记识别成功");
+      // console.log("✅ 标记识别成功");
       document.getElementById("info").style.display = "none";
       document.getElementById("status").style.display = "block";
       document.getElementById("clickHint").style.display = "block";
@@ -511,7 +511,7 @@
     });
 
     markerControls.addEventListener("markerLost", function () {
-      console.log("❌ 标记丢失");
+      // console.log("❌ 标记丢失");
       document.getElementById("status").style.display = "none";
       document.getElementById("info").style.display = "block";
       document.getElementById("clickHint").style.display = "none";
@@ -555,15 +555,16 @@
     //		在场景中添加3D物体
     //////////////////////////////////////////////////////////////////////////////////
 
-    var torusGeometry = new THREE.TorusKnotGeometry(0.3, 0.1, 128, 32);
-    var torusMaterial = new THREE.MeshPhongMaterial({
-      color: 0xff9800,
-      shininess: 100,
-      specular: 0x222222,
-    });
-    var torus = new THREE.Mesh(torusGeometry, torusMaterial);
-    torus.position.y = 0.8;
-    smoothedRoot.add(torus);
+    // 添加环面纽结
+    // var torusGeometry = new THREE.TorusKnotGeometry(0.3, 0.1, 128, 32);
+    // var torusMaterial = new THREE.MeshPhongMaterial({
+    //   color: 0xff9800,
+    //   shininess: 100,
+    //   specular: 0x222222,
+    // });
+    // var torus = new THREE.Mesh(torusGeometry, torusMaterial);
+    // torus.position.y = 0.8;
+    // smoothedRoot.add(torus);
 
     var sphereGeometry = new THREE.SphereGeometry(0.2, 32, 32);
     var sphereMaterial = new THREE.MeshPhongMaterial({
@@ -585,15 +586,16 @@
     smoothedRoot.add(sphere);
     clickableObjects.push(sphere);
 
-    var platformGeometry = new THREE.CylinderGeometry(0.25, 0.25, 0.05, 16);
-    var platformMaterial = new THREE.MeshPhongMaterial({
-      color: 0x4fc3f7,
-      transparent: true,
-      opacity: 0.8,
-    });
-    var platform = new THREE.Mesh(platformGeometry, platformMaterial);
-    platform.position.set(0.5, 0.3, 0.3);
-    smoothedRoot.add(platform);
+    // 添加平台作为球体的底座
+    // var platformGeometry = new THREE.CylinderGeometry(0.25, 0.25, 0.05, 16);
+    // var platformMaterial = new THREE.MeshPhongMaterial({
+    //   color: 0x4fc3f7,
+    //   transparent: true,
+    //   opacity: 0.8,
+    // });
+    // var platform = new THREE.Mesh(platformGeometry, platformMaterial);
+    // platform.position.set(0.5, 0.3, 0.3);
+    // smoothedRoot.add(platform);
 
     var sphereClicked = false;
     var clickAnimationTime = 0;
@@ -602,8 +604,8 @@
     onRenderFcts.push(function (delta) {
       animationTime += delta;
 
-      torus.rotation.x = animationTime * 0.5;
-      torus.rotation.y = animationTime * 0.8;
+      // torus.rotation.x = animationTime * 0.5;
+      // torus.rotation.y = animationTime * 0.8;
 
       if (!sphereClicked) {
         sphere.position.y = 0.5 + Math.sin(animationTime * 2) * 0.1;
