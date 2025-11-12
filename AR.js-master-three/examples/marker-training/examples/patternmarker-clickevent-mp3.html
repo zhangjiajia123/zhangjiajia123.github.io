@@ -161,9 +161,8 @@
 
   <!-- 隐藏的音频元素 -->
   <audio id="clickSound" preload="auto">
-    <!-- 修改这里的路径为您的MP3文件路径 -->
-    <source src="/AR.js-master-three/sounds/click.mp3" type="audio/mpeg">
-    <source src="/AR.js-master-three/sounds/click.mp3" type="audio/ogg">
+    <!-- 使用相对路径 -->
+    <source src="../../../sounds/click.mp3" type="audio/mpeg">
     您的浏览器不支持音频元素。
   </audio>
 
@@ -180,9 +179,12 @@
     // 初始化音频系统
     function initAudio() {
       try {
+        // 显示音频调试信息
+        debugLog("开始初始化音频系统...");
+        
         // 获取音频元素
         clickAudio = document.getElementById('clickSound');
-        
+        console.log("音频元素:", clickAudio);
         if (!clickAudio) {
           console.error("未找到音频元素");
           debugLog("错误：未找到音频元素");
@@ -192,10 +194,17 @@
         // 设置音频属性
         clickAudio.volume = 0.7;
         
+        // 显示音频文件路径
+        var source = clickAudio.querySelector('source');
+        if (source) {
+          debugLog("音频文件路径: " + source.src);
+        }
+        
         // 检查音频是否加载成功
         var loadPromise = new Promise(function(resolve, reject) {
           // 如果音频已经可以播放
           if (clickAudio.readyState >= 3) {
+            console.log("音频已准备就绪");
             resolve();
             return;
           }
@@ -207,13 +216,24 @@
           
           clickAudio.addEventListener('error', function(e) {
             console.error('音频加载失败:', e);
-            console.log('音频错误详情:', clickAudio.error);
-            reject(new Error('音频加载失败: ' + (clickAudio.error ? clickAudio.error.message : '未知错误')));
+            var errorCode = clickAudio.error ? clickAudio.error.code : 'unknown';
+            var errorMessages = {
+              1: '用户中止了获取过程',
+              2: '网络错误',
+              3: '解码错误',
+              4: '不支持的音频格式'
+            };
+            var errorMsg = errorMessages[errorCode] || '未知错误';
+            console.log('音频错误详情:', errorCode, errorMsg);
+            reject(new Error('音频加载失败: ' + errorMsg));
           });
           
           clickAudio.addEventListener('load', function() {
             console.log("音频加载事件触发");
           });
+          
+          // 主动尝试加载
+          clickAudio.load();
         });
         
         // 等待音频加载完成
@@ -283,6 +303,7 @@
       
       try {
         console.log("尝试播放MP3音频");
+        debugLog("准备播放音频");
         
         // 停止并重置音频
         clickAudio.pause();
@@ -715,6 +736,7 @@
     // 添加全局点击事件来启用音频
     document.addEventListener('click', function(event) {
       initAudioOnUserInteraction();
+      debugLog("用户点击页面，初始化音频");
     });
 
     // 球体点击事件
