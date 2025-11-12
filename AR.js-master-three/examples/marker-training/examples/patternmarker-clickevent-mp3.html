@@ -97,26 +97,7 @@
       display: none;
     "
   >
-    💡 点击粉色球体有惊喜！
-  </div>
-
-  <!-- 点击效果显示 -->
-  <div
-    id="clickEffect"
-    style="
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: #ffeb3b;
-      font-size: 48px;
-      z-index: 100;
-      display: none;
-      text-shadow: 0 0 20px rgba(255, 235, 59, 0.8);
-      pointer-events: none;
-    "
-  >
-    ✨
+    💡 点击粉色球体播放音频！
   </div>
 
   <!-- 音频控制 -->
@@ -135,7 +116,26 @@
       display: none;
     "
   >
-    🔊 音频已启用
+    🔊 音频已加载
+  </div>
+
+  <!-- 点击效果显示 -->
+  <div
+    id="clickEffect"
+    style="
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #ffeb3b;
+      font-size: 48px;
+      z-index: 100;
+      display: none;
+      text-shadow: 0 0 20px rgba(255, 235, 59, 0.8);
+      pointer-events: none;
+    "
+  >
+    🎵
   </div>
 
   <!-- 调试信息 -->
@@ -158,76 +158,53 @@
     调试信息将显示在这里
   </div>
 
+  <!-- 隐藏的音频元素 - 只保留点击音效 -->
+  <audio id="clickSound" preload="auto">
+    <source src="/AR.js-master-three/sounds/click.MP3" type="audio/mpeg">
+    您的浏览器不支持音频元素。
+  </audio>
+
   <script>
     //////////////////////////////////////////////////////////////////////////////////
-    //		音频管理
+    //		音频管理 - 只保留点击音效
     //////////////////////////////////////////////////////////////////////////////////
 
-    // 音频上下文和音效
-    var audioContext = null;
-    var clickSound = null;
-    var hoverSound = null;
+    // 音频元素和状态
+    var clickAudio = null;
     var audioEnabled = false;
+    var audioLoaded = false;
 
     // 初始化音频系统
     function initAudio() {
       try {
-        // 创建音频上下文
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        // 获取音频元素
+        clickAudio = document.getElementById('clickSound');
         
-        // 创建点击音效 - 清脆的"叮"声
-        function createClickSound() {
-          if (!audioContext) return null;
-          
-          var oscillator = audioContext.createOscillator();
-          var gainNode = audioContext.createGain();
-          
-          oscillator.connect(gainNode);
-          gainNode.connect(audioContext.destination);
-          
-          oscillator.type = 'sine';
-          oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-          oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.2);
-          
-          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-          
-          oscillator.start(audioContext.currentTime);
-          oscillator.stop(audioContext.currentTime + 0.3);
-          
-          return { oscillator: oscillator, gainNode: gainNode };
-        }
+        // 设置音频属性
+        clickAudio.volume = 0.7;
         
-        // 创建悬停音效 - 柔和的"嗡"声
-        function createHoverSound() {
-          if (!audioContext) return null;
-          
-          var oscillator = audioContext.createOscillator();
-          var gainNode = audioContext.createGain();
-          
-          oscillator.connect(gainNode);
-          gainNode.connect(audioContext.destination);
-          
-          oscillator.type = 'sine';
-          oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
-          oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.1);
-          
-          gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-          
-          oscillator.start(audioContext.currentTime);
-          oscillator.stop(audioContext.currentTime + 0.2);
-          
-          return { oscillator: oscillator, gainNode: gainNode };
-        }
+        // 检查音频是否加载成功
+        var loadPromise = new Promise(function(resolve, reject) {
+          clickAudio.addEventListener('canplaythrough', resolve, { once: true });
+          clickAudio.addEventListener('error', function(e) {
+            console.error('点击音效加载失败:', e);
+            reject(new Error('点击音效加载失败'));
+          });
+        });
         
-        clickSound = createClickSound;
-        hoverSound = createHoverSound;
-        
-        audioEnabled = true;
-        document.getElementById('audioControls').style.display = 'block';
-        console.log("音频系统初始化成功");
-        debugLog("音频系统已启用");
+        // 等待音频加载完成
+        loadPromise.then(function() {
+          audioLoaded = true;
+          audioEnabled = true;
+          document.getElementById('audioControls').style.display = 'block';
+          console.log("点击音效加载成功");
+          debugLog("音频系统已就绪");
+        }).catch(function(error) {
+          console.error("音频加载失败:", error);
+          debugLog("音频加载失败");
+          // 即使音频失败，也尝试启用音频
+          audioEnabled = true;
+        });
         
       } catch (error) {
         console.error("音频初始化失败:", error);
@@ -238,31 +215,31 @@
 
     // 播放点击音效
     function playClickSound() {
-      if (!audioEnabled || !clickSound) return;
+      if (!audioEnabled || !audioLoaded) return;
       
       try {
-        clickSound();
-        console.log("播放点击音效");
+        // 停止并重置音频
+        clickAudio.pause();
+        clickAudio.currentTime = 0;
+        
+        // 播放音频
+        var playPromise = clickAudio.play();
+        
+        if (playPromise !== undefined) {
+          playPromise.then(function() {
+            console.log("点击音效播放成功");
+          }).catch(function(error) {
+            console.error("点击音效播放失败:", error);
+          });
+        }
       } catch (error) {
-        console.error("播放音效失败:", error);
-      }
-    }
-
-    // 播放悬停音效
-    function playHoverSound() {
-      if (!audioEnabled || !hoverSound) return;
-      
-      try {
-        hoverSound();
-        console.log("播放悬停音效");
-      } catch (error) {
-        console.error("播放悬停音效失败:", error);
+        console.error("播放点击音效失败:", error);
       }
     }
 
     // 用户交互后初始化音频（浏览器自动播放策略要求）
     function initAudioOnUserInteraction() {
-      if (!audioContext) {
+      if (!audioEnabled) {
         initAudio();
       }
     }
@@ -391,7 +368,7 @@
 
     // 创建AR工具包上下文
     var arToolkitContext = new THREEx.ArToolkitContext({
-      cameraParametersUrl: "../../../data/data/camera_para.dat", // 相机参数文件
+      cameraParametersUrl: "/AR.js-master-three/data/data/camera_para.dat", // 相机参数文件
       detectionMode: "mono", // 单目检测模式
       maxDetectionRate: 60, // 最大检测率
       canvasWidth: 1280, // 增加画布宽度以提高检测精度
@@ -444,11 +421,6 @@
       document.getElementById("clickHint").style.display = "block";
       markerRoot.visible = true;
       debugLog("标记识别成功！可以点击球体了");
-      
-      // 标记识别时播放欢迎音效
-      if (audioEnabled) {
-        setTimeout(playClickSound, 500);
-      }
     });
 
     // 添加标记丢失事件监听
@@ -514,7 +486,7 @@
     // smoothedRoot.add(torus);
 
     // 添加可点击的浮动球体
-    var sphereGeometry = new THREE.SphereGeometry(0.2, 32, 32); // 稍微增大球体便于点击
+    var sphereGeometry = new THREE.SphereGeometry(0.2, 32, 32);
     var sphereMaterial = new THREE.MeshPhongMaterial({
       color: 0xe91e63,
       shininess: 100,
@@ -533,7 +505,7 @@
     };
     
     smoothedRoot.add(sphere);
-    clickableObjects.push(sphere); // 添加到可点击物体数组
+    clickableObjects.push(sphere);
     console.log("可点击球体已创建:", sphere);
 
     // 添加平台作为球体的底座
@@ -550,7 +522,6 @@
     // 球体点击状态变量
     var sphereClicked = false;
     var clickAnimationTime = 0;
-    var lastHoverTime = 0;
 
     // 添加动画效果
     var animationTime = 0;
@@ -561,7 +532,7 @@
       // torus.rotation.x = animationTime * 0.5;
       // torus.rotation.y = animationTime * 0.8;
 
-      // 球体浮动动画（如果未被点击）
+      // 球体浮动动画
       if (!sphereClicked) {
         sphere.position.y = 0.5 + Math.sin(animationTime * 2) * 0.1;
       } else {
@@ -576,10 +547,10 @@
     });
 
     //////////////////////////////////////////////////////////////////////////////////
-    //		添加点击事件处理 - 带音频版本
+    //		添加点击事件处理 - 只保留点击音效
     //////////////////////////////////////////////////////////////////////////////////
 
-    // 简化的点击检测方法 - 使用边界球检测
+    // 简化的点击检测方法
     function checkSphereClick(event) {
       event.preventDefault();
       
@@ -590,7 +561,7 @@
       var mouseX = (event.clientX / window.innerWidth) * 2 - 1;
       var mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
       
-      debugLog(`简化检测: x=${mouseX.toFixed(2)}, y=${mouseY.toFixed(2)}`);
+      debugLog(`点击检测: x=${mouseX.toFixed(2)}, y=${mouseY.toFixed(2)}`);
 
       // 获取球体的世界位置
       var sphereWorldPos = new THREE.Vector3();
@@ -606,7 +577,7 @@
       
       debugLog(`球体屏幕位置: x=${screenX.toFixed(0)}, y=${screenY.toFixed(0)}`);
 
-      // 检查点击位置是否在球体附近（简化碰撞检测）
+      // 检查点击位置是否在球体附近
       var distance = Math.sqrt(
         Math.pow(event.clientX - screenX, 2) + 
         Math.pow(event.clientY - screenY, 2)
@@ -615,7 +586,7 @@
       debugLog(`点击距离: ${distance.toFixed(0)}px`);
 
       // 如果距离小于阈值，认为点击成功
-      if (distance < 50) { // 50像素阈值
+      if (distance < 50) {
         handleSphereClick(sphere);
         debugLog("✅ 成功点击球体！");
       } else {
@@ -630,18 +601,17 @@
       // 播放点击音效
       playClickSound();
       
-      sphereClicked = !sphereClicked; // 切换点击状态
+      sphereClicked = !sphereClicked;
       
       // 显示点击效果
       showClickEffect();
       
       if (sphereClicked) {
         // 点击状态：改变颜色和发光效果
-        sphere.material.color.set(0x00ff00); // 变为绿色
+        sphere.material.color.set(0x00ff00);
         sphere.material.emissive.set(0x00ff00);
         sphere.material.emissiveIntensity = 0.5;
         
-        // 添加脉动效果
         sphere.userData.originalScale = sphere.scale.x;
         
         // 改变提示文字
@@ -655,7 +625,7 @@
         sphere.scale.setScalar(sphere.userData.originalScale);
         
         // 恢复提示文字
-        document.getElementById("clickHint").innerHTML = "💡 点击粉色球体有惊喜！";
+        document.getElementById("clickHint").innerHTML = "💡 点击粉色球体播放音频！";
         document.getElementById("clickHint").style.color = "#4fc3f7";
       }
     }
@@ -669,7 +639,7 @@
       
       // 动画效果
       var startTime = Date.now();
-      var duration = 1000; // 1秒
+      var duration = 1000;
       
       function animateEffect() {
         var elapsed = Date.now() - startTime;
@@ -687,46 +657,8 @@
       animateEffect();
     }
 
-    // 添加悬停效果检测
-    function checkHoverEffect(event) {
-      if (!audioEnabled) return;
-      
-      var currentTime = Date.now();
-      if (currentTime - lastHoverTime < 1000) return; // 1秒内只播放一次悬停音效
-      
-      var mouseX = (event.clientX / window.innerWidth) * 2 - 1;
-      var mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
-
-      // 获取球体的世界位置
-      var sphereWorldPos = new THREE.Vector3();
-      sphere.getWorldPosition(sphereWorldPos);
-      
-      // 将世界坐标转换为屏幕坐标
-      var screenPos = sphereWorldPos.clone();
-      screenPos.project(camera);
-      
-      // 计算屏幕坐标
-      var screenX = (screenPos.x + 1) / 2 * window.innerWidth;
-      var screenY = (-screenPos.y + 1) / 2 * window.innerHeight;
-      
-      // 检查悬停位置
-      var distance = Math.sqrt(
-        Math.pow(event.clientX - screenX, 2) + 
-        Math.pow(event.clientY - screenY, 2)
-      );
-      
-      // 如果鼠标在球体附近，播放悬停音效
-      if (distance < 30) {
-        playHoverSound();
-        lastHoverTime = currentTime;
-      }
-    }
-
     // 添加点击事件监听
     window.addEventListener("click", checkSphereClick, false);
-
-    // 添加鼠标移动事件（悬停效果）
-    window.addEventListener("mousemove", checkHoverEffect, false);
 
     // 触摸设备支持
     window.addEventListener("touchstart", function(event) {
@@ -735,7 +667,7 @@
       }
     }, false);
 
-    // 页面点击时初始化音频（解决浏览器自动播放限制）
+    // 页面点击时初始化音频
     document.addEventListener('click', function() {
       initAudioOnUserInteraction();
     }, { once: true });
@@ -775,11 +707,10 @@
       });
     });
 
-    // 处理页面可见性变化（标签页切换）
+    // 处理页面可见性变化
     document.addEventListener("visibilitychange", function () {
       if (!document.hidden) {
         console.log("页面重新激活，重新初始化AR");
-        // 页面重新可见时，重新初始化AR源
         arToolkitSource.init(function onReady() {
           arToolkitSource.onResizeElement(
             [
