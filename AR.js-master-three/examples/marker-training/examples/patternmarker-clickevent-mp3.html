@@ -188,6 +188,7 @@
      
         fetch(url)  
             .then(response => {  
+                console.log(response, 'response')
                 if (!response.ok) {  
                     throw new Error('Network response was not ok');  
                 }  
@@ -238,12 +239,13 @@
     var audioLoaded = false;
 
     // 初始化音频系统
+    // '/AR.js-master-three/sounds/click.mp3',
     function initAudio() {
       try {
         // 加载点击音效
         loadAudio(
-          'clickSound', 
-          '/AR.js-master-three/sounds/click.mp3', 
+          'clickSound',
+          'https://cdn.banyou.70180.cn/assets/xfile/ZhbyJingquSpot/upload/20251106054749892_红大龙虾南京窗碎片.MP3',
           function(audioBuffer) {
             console.log("MP3音频加载成功");
             audioLoaded = true;
