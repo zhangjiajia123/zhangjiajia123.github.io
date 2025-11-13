@@ -220,43 +220,38 @@
      * @param {string} key 唯一标识符，用于检索AudioBuffer  
      */  
     function playAudio(key) {  
-        const audioBuffer = audioBuffers[key];  
-        if (!audioBuffer) {  
-            console.error('Audio buffer not found for key:', key);  
-            return;  
-        }  
-     
-        // 如果有正在播放的音频，先停止它
-        if (currentAudioSource) {
-            try {
-                currentAudioSource.stop();
-                console.log('已停止上一个音频');
-                debugLog('已停止上一个音频');
-            } catch (error) {
-                console.log('停止音频时出错:', error);
-            }
-            currentAudioSource = null;
-        }
-     
-        // 创建一个AudioBufferSourceNode来播放音频  
-        const source = audioCtx.createBufferSource();  
-        source.buffer = audioBuffer;  
-        source.connect(audioCtx.destination); // 连接到输出（扬声器）  
-     
-        // 监听音频播放结束事件
-        source.onended = function() {
-            console.log('音频播放完成');
-            currentAudioSource = null;
-        };
-        
-        // 保存当前音频源的引用
-        currentAudioSource = source;
-     
-        // 播放音频  
-        source.start();
-        console.log('开始播放新音频');
-        debugLog('开始播放新音频');
+    const audioBuffer = audioBuffers[key];
+    if (!audioBuffer) {
+      console.error('Audio buffer not found for key:', key);
+      return;
     }
+
+    // 如果有正在播放的音频，禁止重复播放
+    if (currentAudioSource) {
+      console.log('已有音频正在播放，禁止重复播放');
+      debugLog('已有音频正在播放，禁止重复播放');
+      return;
+    }
+
+    // 创建一个AudioBufferSourceNode来播放音频
+    const source = audioCtx.createBufferSource();
+    source.buffer = audioBuffer;
+    source.connect(audioCtx.destination); // 连接到输出（扬声器）
+
+    // 监听音频播放结束事件
+    source.onended = function() {
+      console.log('音频播放完成');
+      currentAudioSource = null;
+    };
+
+    // 保存当前音频源的引用
+    currentAudioSource = source;
+
+    // 播放音频
+    source.start();
+    console.log('开始播放新音频');
+    debugLog('开始播放新音频');
+  }
 
     // 音频状态
     var audioEnabled = false;
