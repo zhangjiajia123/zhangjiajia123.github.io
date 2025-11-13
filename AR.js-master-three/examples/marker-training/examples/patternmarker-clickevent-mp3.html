@@ -578,6 +578,17 @@
       console.log("🙈 模型变为不可见");
       smoothedRoot.visible = false;
       debugLog("3D模型已隐藏");
+      // 模型不可见时停止音频播放
+      if (currentAudioSource) {
+        try {
+          currentAudioSource.stop();
+          console.log("模型不可见，音频已停止");
+          debugLog("模型不可见，音频已停止");
+        } catch (e) {
+          console.log("停止音频时出错", e);
+        }
+        currentAudioSource = null;
+      }
     });
 
     onRenderFcts.push(function (delta) {
@@ -745,11 +756,6 @@
 
       animateEffect();
     }
-
-    // 添加全局点击事件来启用音频
-    // document.addEventListener("click", function (event) {
-    //   initAudioOnUserInteraction();
-    // });
 
     // 球体点击事件
     window.addEventListener("click", checkSphereClick, false);
