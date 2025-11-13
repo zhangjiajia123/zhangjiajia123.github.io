@@ -161,14 +161,17 @@
 
   <script>
     //////////////////////////////////////////////////////////////////////////////////
-    //		音频管理 - 基于您提供的demo重构
+    //		音频管理
     //////////////////////////////////////////////////////////////////////////////////
 
     // 创建一个AudioContext  
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();  
      
     // 假设我们有一个对象来存储加载的音频  
-    let audioBuffers = {};  
+    let audioBuffers = {};
+    
+    // 跟踪当前正在播放的音频源
+    let currentAudioSource = null;
      
     /**  
      * 加载音频文件并解码为AudioBuffer  
@@ -225,13 +228,36 @@
             return;  
         }  
      
+        // 如果有正在播放的音频，先停止它
+        if (currentAudioSource) {
+            try {
+                currentAudioSource.stop();
+                console.log('已停止上一个音频');
+                debugLog('已停止上一个音频');
+            } catch (error) {
+                console.log('停止音频时出错:', error);
+            }
+            currentAudioSource = null;
+        }
+     
         // 创建一个AudioBufferSourceNode来播放音频  
         const source = audioCtx.createBufferSource();  
         source.buffer = audioBuffer;  
         source.connect(audioCtx.destination); // 连接到输出（扬声器）  
      
+        // 监听音频播放结束事件
+        source.onended = function() {
+            console.log('音频播放完成');
+            currentAudioSource = null;
+        };
+        
+        // 保存当前音频源的引用
+        currentAudioSource = source;
+     
         // 播放音频  
-        source.start();  
+        source.start();
+        console.log('开始播放新音频');
+        debugLog('开始播放新音频');
     }
 
     // 音频状态
