@@ -161,31 +161,34 @@
 
   <script>
     //////////////////////////////////////////////////////////////////////////////////
-    //		音频管理 - 支持停止上一次播放
+    //		音频管理 - 基于您提供的demo重构
     //////////////////////////////////////////////////////////////////////////////////
 
     // 创建一个AudioContext  
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();  
      
-    // 存储加载的音频  
+    // 假设我们有一个对象来存储加载的音频  
     let audioBuffers = {};  
-    // 存储当前正在播放的音频源，用于停止播放
-    let currentAudioSource = null;
-    let currentFallbackSource = null;
      
     /**  
      * 加载音频文件并解码为AudioBuffer  
+     * @param {string} key 唯一标识符，用于存储和检索AudioBuffer  
+     * @param {string} url 音频文件的URL  
+     * @param {Function} onSuccess 成功加载并解码音频后的回调函数（可选）  
+     * @param {Function} onError 加载或解码音频时发生错误的回调函数（可选）  
      */  
     function loadAudio(key, url, onSuccess, onError) {  
         if (audioBuffers[key]) {  
+            // 如果已经加载过，直接调用成功回调（如果有）  
             if (onSuccess) {  
                 onSuccess(audioBuffers[key]);  
             }  
-            return;
+            return; // 提前退出函数  
         }  
      
         fetch(url)  
             .then(response => {  
+                console.log(response, 'response')
                 if (!response.ok) {  
                     throw new Error('Network response was not ok');  
                 }  
@@ -193,112 +196,42 @@
             })  
             .then(arrayBuffer => audioCtx.decodeAudioData(arrayBuffer))  
             .then(audioBuffer => {  
+                // 存储AudioBuffer到对象中  
                 audioBuffers[key] = audioBuffer;  
      
+                // 调用成功回调函数（如果有）  
                 if (onSuccess) {  
                     onSuccess(audioBuffer);  
                 }  
             })  
             .catch(error => {  
+                // 调用错误回调函数（如果有）  
                 if (onError) {  
                     onError(error);  
                 } else {  
                     console.error('Error loading and decoding audio:', error);  
                 }  
             });  
-    }
-    
-    /**
-     * 停止当前正在播放的音频
-     */
-    function stopCurrentAudio() {
-      // 停止MP3音频
-      if (currentAudioSource) {
-        try {
-          currentAudioSource.stop();
-          currentAudioSource.disconnect();
-          currentAudioSource = null;
-          console.log("停止当前MP3音频播放");
-        } catch (error) {
-          console.log("MP3音频已自然结束");
-        }
-      }
-      
-      // 停止备用音效
-      if (currentFallbackSource) {
-        try {
-          currentFallbackSource.stop();
-          currentFallbackSource.disconnect();
-          currentFallbackSource = null;
-          console.log("停止当前备用音效播放");
-        } catch (error) {
-          console.log("备用音效已自然结束");
-        }
-      }
-    }
+    }  
      
     /**  
      * 播放已加载的音频  
+     * @param {string} key 唯一标识符，用于检索AudioBuffer  
      */  
     function playAudio(key) {  
         const audioBuffer = audioBuffers[key];  
         if (!audioBuffer) {  
             console.error('Audio buffer not found for key:', key);  
             return;  
-        }
-        
-        // 停止之前正在播放的音频
-        stopCurrentAudio();
+        }  
      
         // 创建一个AudioBufferSourceNode来播放音频  
-        currentAudioSource = audioCtx.createBufferSource();  
-        currentAudioSource.buffer = audioBuffer;  
-        currentAudioSource.connect(audioCtx.destination);
-        
-        // 设置音频结束时的清理
-        currentAudioSource.onended = function() {
-          console.log("MP3音频播放结束");
-          currentAudioSource = null;
-        };
+        const source = audioCtx.createBufferSource();  
+        source.buffer = audioBuffer;  
+        source.connect(audioCtx.destination); // 连接到输出（扬声器）  
      
         // 播放音频  
-        currentAudioSource.start();  
-    }
-
-    // 创建并播放备用音效
-    function createFallbackSound() {
-      // 停止之前正在播放的音频
-      stopCurrentAudio();
-      
-      try {
-        // 创建一个简单的备用音效
-        currentFallbackSource = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        
-        currentFallbackSource.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        
-        currentFallbackSource.frequency.setValueAtTime(800, audioCtx.currentTime);
-        currentFallbackSource.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.3);
-        
-        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-        
-        // 设置音效结束时的清理
-        currentFallbackSource.onended = function() {
-          console.log("备用音效播放结束");
-          currentFallbackSource = null;
-        };
-        
-        currentFallbackSource.start(audioCtx.currentTime);
-        currentFallbackSource.stop(audioCtx.currentTime + 0.3);
-        
-        console.log("播放备用音效");
-        
-      } catch (fallbackError) {
-        console.error("备用音效创建失败:", fallbackError);
-        currentFallbackSource = null;
-      }
+        source.start();  
     }
 
     // 音频状态
@@ -306,12 +239,13 @@
     var audioLoaded = false;
 
     // 初始化音频系统
+    // '/AR.js-master-three/sounds/click.mp3',
     function initAudio() {
       try {
         // 加载点击音效
         loadAudio(
-          'clickSound', 
-          './sounds/click.mp3', 
+          'clickSound',
+          'https://cdn.banyou.70180.cn/assets/xfile/ZhbyJingquSpot/upload/20251106054749892_红大龙虾南京窗碎片.MP3',
           function(audioBuffer) {
             console.log("MP3音频加载成功");
             audioLoaded = true;
@@ -325,6 +259,7 @@
             debugLog("音频加载失败: " + error.message);
             // 即使失败也允许点击，使用备用方案
             audioEnabled = true;
+            createFallbackSound();
           }
         );
         
@@ -332,6 +267,34 @@
         console.error("音频初始化失败:", error);
         debugLog("音频初始化失败: " + error.message);
         audioEnabled = true; // 允许点击，只是没有声音
+      }
+    }
+
+    // 创建备用音效
+    function createFallbackSound() {
+      try {
+        // 创建一个简单的备用音效
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.3);
+        
+        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        
+        oscillator.start(audioCtx.currentTime);
+        oscillator.stop(audioCtx.currentTime + 0.3);
+        
+        // 存储备用音效
+        audioBuffers['fallbackSound'] = true;
+        console.log("备用音效创建成功");
+        
+      } catch (fallbackError) {
+        console.error("备用音效创建失败:", fallbackError);
       }
     }
 
@@ -349,12 +312,15 @@
           // 播放MP3音频
           playAudio('clickSound');
           console.log("MP3音频播放成功");
-          debugLog("MP3音频播放成功 - 已停止上一次播放");
-        } else {
+          debugLog("MP3音频播放成功");
+        } else if (audioBuffers['fallbackSound']) {
           // 播放备用音效
           createFallbackSound();
           console.log("播放备用音效");
-          debugLog("播放备用音效 - 已停止上一次播放");
+          debugLog("播放备用音效");
+        } else {
+          console.log("没有可用的音效");
+          debugLog("没有可用的音效");
         }
       } catch (error) {
         console.error("播放音效失败:", error);
@@ -653,7 +619,7 @@
     //////////////////////////////////////////////////////////////////////////////////
 
     function checkSphereClick(event) {
-      event.preventDefault();
+      // event.preventDefault();
       
       // 初始化音频
       initAudioOnUserInteraction();
@@ -692,7 +658,7 @@
     function handleSphereClick(sphere) {
       console.log("🎯 球体被点击了！");
       
-      // 播放音效（会自动停止上一次播放）
+      // 播放音效
       playClickSound();
       
       sphereClicked = !sphereClicked;
