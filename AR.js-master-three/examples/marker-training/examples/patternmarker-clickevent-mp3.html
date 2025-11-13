@@ -162,125 +162,124 @@
     //		音频管理
     //////////////////////////////////////////////////////////////////////////////////
 
-    // 创建一个AudioContext  
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();  
-     
-    // 假设我们有一个对象来存储加载的音频  
+    // 创建一个AudioContext
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    // 假设我们有一个对象来存储加载的音频
     let audioBuffers = {};
-    
+
     // 跟踪当前正在播放的音频源
     let currentAudioSource = null;
-     
-    /**  
-     * 加载音频文件并解码为AudioBuffer  
-     * @param {string} key 唯一标识符，用于存储和检索AudioBuffer  
-     * @param {string} url 音频文件的URL  
-     * @param {Function} onSuccess 成功加载并解码音频后的回调函数（可选）  
-     * @param {Function} onError 加载或解码音频时发生错误的回调函数（可选）  
-     */  
-    function loadAudio(key, url, onSuccess, onError) {  
-        if (audioBuffers[key]) {  
-            // 如果已经加载过，直接调用成功回调（如果有）  
-            if (onSuccess) {  
-                onSuccess(audioBuffers[key]);  
-            }  
-            return; // 提前退出函数  
-        }  
-     
-        fetch(url)  
-            .then(response => {  
-                console.log(response, 'response')
-                if (!response.ok) {  
-                    throw new Error('Network response was not ok');  
-                }  
-                return response.arrayBuffer();  
-            })  
-            .then(arrayBuffer => audioCtx.decodeAudioData(arrayBuffer))  
-            .then(audioBuffer => {  
-                // 存储AudioBuffer到对象中  
-                audioBuffers[key] = audioBuffer;  
-     
-                // 调用成功回调函数（如果有）  
-                if (onSuccess) {  
-                    onSuccess(audioBuffer);  
-                }  
-            })  
-            .catch(error => {  
-                // 调用错误回调函数（如果有）  
-                if (onError) {  
-                    onError(error);  
-                } else {  
-                    console.error('Error loading and decoding audio:', error);  
-                }  
-            });  
-    }  
-     
-    /**  
-     * 播放已加载的音频  
-     * @param {string} key 唯一标识符，用于检索AudioBuffer  
-     */  
-    function playAudio(key) {  
-    const audioBuffer = audioBuffers[key];
-    if (!audioBuffer) {
-      console.error('Audio buffer not found for key:', key);
-      return;
+
+    /**
+     * 加载音频文件并解码为AudioBuffer
+     * @param {string} key 唯一标识符，用于存储和检索AudioBuffer
+     * @param {string} url 音频文件的URL
+     * @param {Function} onSuccess 成功加载并解码音频后的回调函数（可选）
+     * @param {Function} onError 加载或解码音频时发生错误的回调函数（可选）
+     */
+    function loadAudio(key, url, onSuccess, onError) {
+      if (audioBuffers[key]) {
+        // 如果已经加载过，直接调用成功回调（如果有）
+        if (onSuccess) {
+          onSuccess(audioBuffers[key]);
+        }
+        return; // 提前退出函数
+      }
+
+      fetch(url)
+        .then((response) => {
+          console.log(response, "response");
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.arrayBuffer();
+        })
+        .then((arrayBuffer) => audioCtx.decodeAudioData(arrayBuffer))
+        .then((audioBuffer) => {
+          // 存储AudioBuffer到对象中
+          audioBuffers[key] = audioBuffer;
+
+          // 调用成功回调函数（如果有）
+          if (onSuccess) {
+            onSuccess(audioBuffer);
+          }
+        })
+        .catch((error) => {
+          // 调用错误回调函数（如果有）
+          if (onError) {
+            onError(error);
+          } else {
+            console.error("Error loading and decoding audio:", error);
+          }
+        });
     }
 
-    // 如果有正在播放的音频，禁止重复播放
-    if (currentAudioSource) {
-      console.log('已有音频正在播放，禁止重复播放');
-      debugLog('已有音频正在播放，禁止重复播放');
-      return;
+    /**
+     * 播放已加载的音频
+     * @param {string} key 唯一标识符，用于检索AudioBuffer
+     */
+    function playAudio(key) {
+      const audioBuffer = audioBuffers[key];
+      if (!audioBuffer) {
+        console.error("Audio buffer not found for key:", key);
+        return;
+      }
+
+      // 如果有正在播放的音频，禁止重复播放
+      if (currentAudioSource) {
+        console.log("已有音频正在播放，禁止重复播放");
+        debugLog("已有音频正在播放，禁止重复播放");
+        return;
+      }
+
+      // 创建一个AudioBufferSourceNode来播放音频
+      const source = audioCtx.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(audioCtx.destination); // 连接到输出（扬声器）
+
+      // 监听音频播放结束事件
+      source.onended = function () {
+        console.log("音频播放完成");
+        currentAudioSource = null;
+      };
+
+      // 保存当前音频源的引用
+      currentAudioSource = source;
+
+      // 播放音频
+      source.start();
+      console.log("开始播放新音频");
+      debugLog("开始播放新音频");
     }
-
-    // 创建一个AudioBufferSourceNode来播放音频
-    const source = audioCtx.createBufferSource();
-    source.buffer = audioBuffer;
-    source.connect(audioCtx.destination); // 连接到输出（扬声器）
-
-    // 监听音频播放结束事件
-    source.onended = function() {
-      console.log('音频播放完成');
-      currentAudioSource = null;
-    };
-
-    // 保存当前音频源的引用
-    currentAudioSource = source;
-
-    // 播放音频
-    source.start();
-    console.log('开始播放新音频');
-    debugLog('开始播放新音频');
-  }
 
     // 音频状态
     var audioEnabled = false;
     var audioLoaded = false;
 
     // 初始化音频系统
-    // '/AR.js-master-three/sounds/click.mp3',
     function initAudio() {
       try {
         // 恢复音频上下文（如果被暂停）
-        if (audioCtx.state === 'suspended') {
+        if (audioCtx.state === "suspended") {
           audioCtx.resume().then(() => {
             console.log("AudioContext resumed");
           });
         }
-        
+
         // 加载点击音效
         loadAudio(
-          'clickSound',
-          'https://cdn.banyou.70180.cn/assets/xfile/ZhbyJingquSpot/upload/20251106054749892_红大龙虾南京窗碎片.MP3',
-          function(audioBuffer) {
+          "clickSound",
+          "https://cdn.banyou.70180.cn/assets/xfile/ZhbyJingquSpot/upload/20251106054749892_红大龙虾南京窗碎片.MP3",
+          function (audioBuffer) {
             console.log("MP3音频加载成功");
             audioLoaded = true;
             audioEnabled = true;
-            document.getElementById('audioStatus').innerHTML = "🔊 音频已加载";
-            document.getElementById('audioStatus').style.color = "#00ff00";
+            document.getElementById("audioStatus").innerHTML = "🔊 音频已加载";
+            document.getElementById("audioStatus").style.color = "#00ff00";
             debugLog("MP3音频已就绪");
           },
-          function(error) {
+          function (error) {
             console.error("MP3音频加载失败:", error);
             debugLog("音频加载失败: " + error.message);
             // 即使失败也允许点击，使用备用方案
@@ -288,7 +287,6 @@
             createFallbackSound();
           }
         );
-        
       } catch (error) {
         console.error("音频初始化失败:", error);
         debugLog("音频初始化失败: " + error.message);
@@ -302,23 +300,28 @@
         // 创建一个简单的备用音效
         const oscillator = audioCtx.createOscillator();
         const gainNode = audioCtx.createGain();
-        
+
         oscillator.connect(gainNode);
         gainNode.connect(audioCtx.destination);
-        
+
         oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.3);
-        
+        oscillator.frequency.exponentialRampToValueAtTime(
+          300,
+          audioCtx.currentTime + 0.3
+        );
+
         gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-        
+        gainNode.gain.exponentialRampToValueAtTime(
+          0.01,
+          audioCtx.currentTime + 0.3
+        );
+
         oscillator.start(audioCtx.currentTime);
         oscillator.stop(audioCtx.currentTime + 0.3);
-        
+
         // 存储备用音效
-        audioBuffers['fallbackSound'] = true;
+        audioBuffers["fallbackSound"] = true;
         console.log("备用音效创建成功");
-        
       } catch (fallbackError) {
         console.error("备用音效创建失败:", fallbackError);
       }
@@ -327,7 +330,7 @@
     // 播放点击音效
     function playClickSound() {
       // 如果AudioContext被暂停，尝试恢复
-      if (audioCtx.state === 'suspended') {
+      if (audioCtx.state === "suspended") {
         audioCtx.resume().then(() => {
           console.log("AudioContext resumed on play");
           playAudioInternal();
@@ -336,22 +339,22 @@
         playAudioInternal();
       }
     }
-    
+
     function playAudioInternal() {
       if (!audioEnabled) {
         debugLog("音频未启用");
         return;
       }
-      
+
       try {
         console.log("尝试播放音频");
-        
-        if (audioBuffers['clickSound']) {
+
+        if (audioBuffers["clickSound"]) {
           // 播放MP3音频
-          playAudio('clickSound');
+          playAudio("clickSound");
           console.log("MP3音频播放成功");
           debugLog("MP3音频播放成功");
-        } else if (audioBuffers['fallbackSound']) {
+        } else if (audioBuffers["fallbackSound"]) {
           // 播放备用音效
           createFallbackSound();
           console.log("播放备用音效");
@@ -369,7 +372,7 @@
     // 用户交互后初始化音频（已废弃，改为页面加载时初始化）
     function initAudioOnUserInteraction() {
       // 如果音频上下文被暂停，尝试恢复
-      if (audioCtx.state === 'suspended') {
+      if (audioCtx.state === "suspended") {
         audioCtx.resume().then(() => {
           console.log("AudioContext resumed on interaction");
         });
@@ -436,10 +439,10 @@
     // 调试函数
     function debugLog(message) {
       // console.log(message);
-      var debugElement = document.getElementById('debugInfo');
+      var debugElement = document.getElementById("debugInfo");
       if (debugElement) {
         debugElement.innerHTML = message;
-        debugElement.style.display = 'block';
+        debugElement.style.display = "block";
       }
     }
 
@@ -604,14 +607,14 @@
     });
     var sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
     sphere.position.set(0.5, 0.5, 0.3);
-    
-    sphere.userData = { 
-      clickable: true, 
+
+    sphere.userData = {
+      clickable: true,
       originalColor: 0xe91e63,
       originalScale: 1,
-      name: "clickableSphere"
+      name: "clickableSphere",
     };
-    
+
     smoothedRoot.add(sphere);
     clickableObjects.push(sphere);
 
@@ -653,31 +656,31 @@
 
     function checkSphereClick(event) {
       // event.preventDefault();
-      
+
       // 初始化音频
       initAudioOnUserInteraction();
-      
+
       var mouseX = (event.clientX / window.innerWidth) * 2 - 1;
       var mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
-      
+
       debugLog(`点击位置: x=${mouseX.toFixed(2)}, y=${mouseY.toFixed(2)}`);
 
       var sphereWorldPos = new THREE.Vector3();
       sphere.getWorldPosition(sphereWorldPos);
-      
+
       var screenPos = sphereWorldPos.clone();
       screenPos.project(camera);
-      
-      var screenX = (screenPos.x + 1) / 2 * window.innerWidth;
-      var screenY = (-screenPos.y + 1) / 2 * window.innerHeight;
-      
+
+      var screenX = ((screenPos.x + 1) / 2) * window.innerWidth;
+      var screenY = ((-screenPos.y + 1) / 2) * window.innerHeight;
+
       debugLog(`球体位置: x=${screenX.toFixed(0)}, y=${screenY.toFixed(0)}`);
 
       var distance = Math.sqrt(
-        Math.pow(event.clientX - screenX, 2) + 
-        Math.pow(event.clientY - screenY, 2)
+        Math.pow(event.clientX - screenX, 2) +
+          Math.pow(event.clientY - screenY, 2)
       );
-      
+
       debugLog(`点击距离: ${distance.toFixed(0)}px`);
 
       if (distance < 50) {
@@ -690,14 +693,14 @@
 
     function handleSphereClick(sphere) {
       console.log("🎯 球体被点击了！");
-      
+
       // 播放音效
       playClickSound();
-      
+
       sphereClicked = !sphereClicked;
-      
+
       showClickEffect();
-      
+
       if (sphereClicked) {
         sphere.material.color.set(0x00ff00);
         sphere.material.emissive.set(0x00ff00);
@@ -710,7 +713,8 @@
         sphere.material.emissive.set(sphere.userData.originalColor);
         sphere.material.emissiveIntensity = 0.3;
         sphere.scale.setScalar(sphere.userData.originalScale);
-        document.getElementById("clickHint").innerHTML = "💡 点击粉色球体播放音频！";
+        document.getElementById("clickHint").innerHTML =
+          "💡 点击粉色球体播放音频！";
         document.getElementById("clickHint").style.color = "#4fc3f7";
       }
     }
@@ -720,40 +724,46 @@
       effectElement.style.display = "block";
       effectElement.style.opacity = "1";
       effectElement.style.transform = "translate(-50%, -50%) scale(1)";
-      
+
       var startTime = Date.now();
       var duration = 1000;
-      
+
       function animateEffect() {
         var elapsed = Date.now() - startTime;
         var progress = elapsed / duration;
-        
+
         if (progress < 1) {
-          effectElement.style.transform = `translate(-50%, -50%) scale(${1 + progress * 0.5})`;
+          effectElement.style.transform = `translate(-50%, -50%) scale(${
+            1 + progress * 0.5
+          })`;
           effectElement.style.opacity = (1 - progress).toString();
           requestAnimationFrame(animateEffect);
         } else {
           effectElement.style.display = "none";
         }
       }
-      
+
       animateEffect();
     }
 
     // 添加全局点击事件来启用音频
-    document.addEventListener('click', function(event) {
-      initAudioOnUserInteraction();
-    });
+    // document.addEventListener("click", function (event) {
+    //   initAudioOnUserInteraction();
+    // });
 
     // 球体点击事件
     window.addEventListener("click", checkSphereClick, false);
 
     // 触摸设备支持
-    window.addEventListener("touchstart", function(event) {
-      if (event.touches.length === 1) {
-        checkSphereClick(event.touches[0]);
-      }
-    }, false);
+    // window.addEventListener(
+    //   "touchstart",
+    //   function (event) {
+    //     if (event.touches.length === 1) {
+    //       checkSphereClick(event.touches[0]);
+    //     }
+    //   },
+    //   false
+    // );
 
     //////////////////////////////////////////////////////////////////////////////////
     //		渲染场景
@@ -800,15 +810,15 @@
 
     console.log("AR应用初始化完成");
     debugLog("应用已启动");
-    
+
     // 页面加载完成后立即初始化音频
-    window.addEventListener('load', function() {
+    window.addEventListener("load", function () {
       console.log("页面加载完成，初始化音频");
       initAudio();
     });
-    
+
     // 如果load事件已经触发，立即初始化
-    if (document.readyState === 'complete') {
+    if (document.readyState === "complete") {
       console.log("页面已加载，立即初始化音频");
       initAudio();
     }
