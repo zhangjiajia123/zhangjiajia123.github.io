@@ -60,8 +60,6 @@
     </div>
     请将摄像头对准AR标记图案<br />
     <small style="color: #b0bec5">模型将在识别到标记后显示</small>
-    <br />
-    <small style="color: #ff9800">点击页面任意位置启用音频</small>
   </div>
 
   <!-- 状态指示器 -->
@@ -117,7 +115,7 @@
       font-size: 14px;
     "
   >
-    🔇 点击页面启用音频
+    � 音频加载中...
   </div>
 
   <!-- 点击效果显示 -->
@@ -268,6 +266,13 @@
     // '/AR.js-master-three/sounds/click.mp3',
     function initAudio() {
       try {
+        // 恢复音频上下文（如果被暂停）
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume().then(() => {
+            console.log("AudioContext resumed");
+          });
+        }
+        
         // 加载点击音效
         loadAudio(
           'clickSound',
@@ -326,6 +331,18 @@
 
     // 播放点击音效
     function playClickSound() {
+      // 如果AudioContext被暂停，尝试恢复
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume().then(() => {
+          console.log("AudioContext resumed on play");
+          playAudioInternal();
+        });
+      } else {
+        playAudioInternal();
+      }
+    }
+    
+    function playAudioInternal() {
       if (!audioEnabled) {
         debugLog("音频未启用");
         return;
@@ -354,18 +371,13 @@
       }
     }
 
-    // 用户交互后初始化音频
+    // 用户交互后初始化音频（已废弃，改为页面加载时初始化）
     function initAudioOnUserInteraction() {
-      if (!audioEnabled) {
-        // 恢复音频上下文（解决浏览器自动播放限制）
-        if (audioCtx.state === 'suspended') {
-          audioCtx.resume().then(() => {
-            console.log("AudioContext resumed");
-            initAudio();
-          });
-        } else {
-          initAudio();
-        }
+      // 如果音频上下文被暂停，尝试恢复
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume().then(() => {
+          console.log("AudioContext resumed on interaction");
+        });
       }
     }
 
@@ -792,6 +804,18 @@
     });
 
     console.log("AR应用初始化完成");
-    debugLog("应用已启动 - 点击页面任意位置启用音频");
+    debugLog("应用已启动");
+    
+    // 页面加载完成后立即初始化音频
+    window.addEventListener('load', function() {
+      console.log("页面加载完成，初始化音频");
+      initAudio();
+    });
+    
+    // 如果load事件已经触发，立即初始化
+    if (document.readyState === 'complete') {
+      console.log("页面已加载，立即初始化音频");
+      initAudio();
+    }
   </script>
 </body>
